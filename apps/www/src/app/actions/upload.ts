@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import configPromise from '../../../payload.config'
 import { cookies } from 'next/headers'
 import sharp from 'sharp'
+import { extractLocationFromImage } from '@/lib/exif-location'
 
 export async function uploadImage(formData: FormData) {
   const payload = await getPayload({ config: configPromise })
@@ -30,6 +31,10 @@ export async function uploadImage(formData: FormData) {
   let mimetype = file.type
   let filename = file.name
 
+  // Extract location data from original image (before any conversion)
+  const locationInfo = await extractLocationFromImage(buffer)
+  console.log('Extracted location info:', locationInfo)
+
   // Convert HEIC/HEIF to JPEG if needed
   if (file.type.includes('heic') || file.type.includes('heif') || filename.toLowerCase().endsWith('.heic')) {
     console.log('Converting HEIC to JPEG...')
@@ -47,17 +52,36 @@ export async function uploadImage(formData: FormData) {
     }
   }
 
+  // Prepare metadata to store with the media
+  const metadata: any = {
+    alt: file.name,
+  }
+
+  // Add location metadata if available
+  if (locationInfo.latitude && locationInfo.longitude) {
+    metadata.gpsLatitude = locationInfo.latitude
+    metadata.gpsLongitude = locationInfo.longitude
+    if (locationInfo.locationName) {
+      metadata.locationName = locationInfo.locationName
+    }
+  }
+
   const media = await payload.create({
     collection: 'media',
-    data: {
-      alt: file.name,
-    },
+    data: metadata,
     file: {
       data: buffer,
       mimetype: mimetype,
       name: filename,
       size: buffer.length,
     },
+  })
+
+  console.log('Uploaded media object:', {
+    id: media.id,
+    hasUrl: !!media.url,
+    url: media.url,
+    filename: media.filename
   })
 
   return media

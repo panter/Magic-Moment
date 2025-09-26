@@ -54,22 +54,45 @@ export async function createVariant(designId: string, customPrompt?: string) {
 
   // Get description or generate one based on the image
   let description = design.description;
-  if (!description) {
-    if (!design.imageOriginal) {
-      throw new Error("No original image found on design");
+  const needsDescription = !description;
+  const needsGeoData = !design.latitude && !design.longitude;
+
+  if ((needsDescription || needsGeoData) && design.imageOriginal) {
+    // Analyze the image
+    const analysisResult = await describeImage(design.imageOriginal, token.value);
+
+    if (needsDescription) {
+      description = analysisResult.description;
     }
 
-    // Describe the image using the extracted function
-    description = await describeImage(design.imageOriginal, token.value);
+    // Prepare update data
+    const updateData: any = {};
+    if (needsDescription) {
+      updateData.description = analysisResult.description;
+    }
+    if (needsGeoData && analysisResult.geoData) {
+      if (analysisResult.geoData.latitude) {
+        updateData.latitude = analysisResult.geoData.latitude;
+      }
+      if (analysisResult.geoData.longitude) {
+        updateData.longitude = analysisResult.geoData.longitude;
+      }
+      if (analysisResult.geoData.locationName) {
+        updateData.locationName = analysisResult.geoData.locationName;
+      }
+    }
 
-    // Persist the generated description on the design so we can reuse it later
-    await payload.update({
-      collection: "postcard-designs",
-      id: designId,
-      data: { description },
-    });
-
-    console.log("Generated and saved description:", description);
+    // Persist the generated data on the design
+    if (Object.keys(updateData).length > 0) {
+      await payload.update({
+        collection: "postcard-designs",
+        id: designId,
+        data: updateData,
+      });
+      console.log("Updated design with:", updateData);
+    }
+  } else if (!description) {
+    throw new Error("No original image found on design");
   }
 
   // Generate a creative variant style name based on the custom prompt or AI

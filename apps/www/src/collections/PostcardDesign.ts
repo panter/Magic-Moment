@@ -43,6 +43,27 @@ export const PostcardDesign: CollectionConfig = {
       type: 'textarea',
     },
     {
+      name: 'latitude',
+      type: 'number',
+      admin: {
+        description: 'GPS latitude coordinate extracted from image EXIF',
+      },
+    },
+    {
+      name: 'longitude',
+      type: 'number',
+      admin: {
+        description: 'GPS longitude coordinate extracted from image EXIF',
+      },
+    },
+    {
+      name: 'locationName',
+      type: 'text',
+      admin: {
+        description: 'Location name based on GPS coordinates',
+      },
+    },
+    {
       name: 'imageOriginal',
       type: 'upload',
       relationTo: 'media',
@@ -134,7 +155,7 @@ export const PostcardDesign: CollectionConfig = {
       hooks: {
         beforeChange: [
           ({ req, operation, data }) => {
-            if (operation === 'create' && req.user) {
+            if (operation === 'create' && req.user && data) {
               data.createdBy = req.user.id
               return data
             }
@@ -146,7 +167,12 @@ export const PostcardDesign: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ req, operation, data }) => {
-        if (operation === 'create' && req.user) {
+        if (operation === 'create' && req.user && data) {
+          console.log('PostcardDesign beforeChange hook - geo fields:', {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            locationName: data.locationName,
+          })
           data.createdBy = req.user.id
           // If no frontImage is specified, use the imageOriginal
           if (!data.frontImage && data.imageOriginal) {

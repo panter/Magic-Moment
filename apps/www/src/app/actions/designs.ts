@@ -7,6 +7,7 @@ import OpenAI from "openai";
 import { describeImage } from "@/lib/image-analysis";
 import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
 import { createVariant as createVariantImport } from "./createVariant";
+import type { CreateDesignInput, UpdateDesignInput } from "./types";
 
 export async function getUserDesigns() {
   const payload = await getPayload({ config: configPromise });
@@ -37,7 +38,7 @@ export async function getUserDesigns() {
   return designs;
 }
 
-export async function createDesign(data: any) {
+export async function createDesign(data: CreateDesignInput) {
   const payload = await getPayload({ config: configPromise });
   const token = (await cookies()).get("payload-token");
 
@@ -61,17 +62,96 @@ export async function createDesign(data: any) {
     finalData.imageOriginal = data.frontImage;
   }
 
-  if (!data.description && finalData.imageOriginal) {
+  // Log incoming data for debugging
+  console.log("createDesign received data:", {
+    hasDescription: !!data.description,
+    hasLatitude: !!data.latitude,
+    hasLongitude: !!data.longitude,
+    hasBrowserLatitude: !!data.browserLatitude,
+    hasBrowserLongitude: !!data.browserLongitude,
+    browserCoords: data.browserLatitude && data.browserLongitude ?
+      { lat: data.browserLatitude, lng: data.browserLongitude } : null
+  });
+
+  // STEP 1: Set coordinates FIRST (highest priority)
+  // If design already has coordinates, use them
+  if (data.latitude && data.longitude) {
+    finalData.latitude = data.latitude;
+    finalData.longitude = data.longitude;
+    if (data.locationName) {
+      finalData.locationName = data.locationName;
+    }
+    console.log("✅ Using existing coordinates from data");
+  }
+  // Otherwise, use browser location if available
+  else if (data.browserLatitude && data.browserLongitude) {
+    finalData.latitude = data.browserLatitude;
+    finalData.longitude = data.browserLongitude;
+    console.log("✅ Using browser location as primary source:", {
+      latitude: data.browserLatitude,
+      longitude: data.browserLongitude,
+    });
+
+    // Try to get location name for browser coordinates
     try {
-      console.log("Generating automatic description for new design");
-      const description = await describeImage(finalData.imageOriginal, token.value);
-      finalData.description = description;
-      console.log("Generated description:", description);
-    } catch (error) {
-      console.error("Error generating description:", error);
-      // Continue without description if generation fails
+      const { geocodeCoordinates } = await import("@/lib/exif-location");
+      const locationResult = await geocodeCoordinates(data.browserLatitude, data.browserLongitude);
+      if (locationResult.locationName) {
+        finalData.locationName = locationResult.locationName;
+        console.log("Got location name for browser coordinates:", locationResult.locationName);
+      }
+    } catch (err) {
+      console.error("Error getting location name for browser coordinates:", err);
     }
   }
+
+  // STEP 2: Generate description and try EXIF as fallback for geo (but don't override browser location)
+  if (finalData.imageOriginal) {
+    try {
+      const needsDescription = !data.description && !finalData.description;
+      const stillNeedsGeoData = !finalData.latitude && !finalData.longitude;
+
+      if (needsDescription || stillNeedsGeoData) {
+        console.log("Analyzing image", { needsDescription, stillNeedsGeoData });
+        const analysisResult = await describeImage(finalData.imageOriginal, token.value);
+
+        // Use description if not provided
+        if (needsDescription && analysisResult.description) {
+          finalData.description = analysisResult.description;
+          console.log("Generated description:", analysisResult.description);
+        }
+
+        // Only use EXIF geo data if we don't have any coordinates yet (as fallback)
+        if (stillNeedsGeoData && analysisResult.geoData) {
+          if (analysisResult.geoData.latitude && analysisResult.geoData.longitude) {
+            finalData.latitude = analysisResult.geoData.latitude;
+            finalData.longitude = analysisResult.geoData.longitude;
+            if (analysisResult.geoData.locationName) {
+              finalData.locationName = analysisResult.geoData.locationName;
+            }
+            console.log("✅ No browser location, using EXIF geo data as fallback:", analysisResult.geoData);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error analyzing image (continuing without description):", error);
+      // Continue - coordinates from browser are already set if available
+    }
+  }
+
+  // Clean up browser location fields (don't store them in the database)
+  delete finalData.browserLatitude;
+  delete finalData.browserLongitude;
+
+  // Log final data being saved
+  console.log("Final design data being saved:", {
+    hasLatitude: !!finalData.latitude,
+    hasLongitude: !!finalData.longitude,
+    hasLocationName: !!finalData.locationName,
+    latitude: finalData.latitude,
+    longitude: finalData.longitude,
+    locationName: finalData.locationName,
+  });
 
   const design = await payload.create({
     collection: "postcard-designs",
@@ -84,7 +164,7 @@ export async function createDesign(data: any) {
   return design;
 }
 
-export async function updateDesign(id: string, data: any) {
+export async function updateDesign(id: string, data: UpdateDesignInput) {
   const payload = await getPayload({ config: configPromise });
   const token = (await cookies()).get("payload-token");
 
@@ -153,7 +233,7 @@ export async function getDesign(id: string) {
   // Add image URLs
   let frontImageUrl = null;
   let imageOriginalUrl = null;
-  let imageVariantsData = [];
+  let imageVariantsData: Array<{ id: string; url: string; alt: string }> = [];
 
   if (design.frontImage && typeof design.frontImage === "object") {
     frontImageUrl = design.frontImage.url;
@@ -225,20 +305,48 @@ export async function generatePostcardMessage(
 
   description = design.description;
 
-  // If no description and we have an image, generate one
-  if (!description && (imageId || design.frontImage)) {
+  // If no description or geo data, analyze the image
+  const needsDescription = !description;
+  const needsGeoData = !design.latitude && !design.longitude;
+
+  if ((needsDescription || needsGeoData) && (imageId || design.frontImage)) {
     const imageToDescribe = imageId || design.frontImage;
     try {
-      description = await describeImage(imageToDescribe, token.value);
+      const analysisResult = await describeImage(imageToDescribe, token.value);
 
-      // Save the generated description
-      await payload.update({
-        collection: "postcard-designs",
-        id: designId,
-        data: { description },
-      });
+      // Use the description from the analysis
+      if (needsDescription) {
+        description = analysisResult.description;
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (needsDescription) {
+        updateData.description = analysisResult.description;
+      }
+      if (needsGeoData && analysisResult.geoData) {
+        if (analysisResult.geoData.latitude) {
+          updateData.latitude = analysisResult.geoData.latitude;
+        }
+        if (analysisResult.geoData.longitude) {
+          updateData.longitude = analysisResult.geoData.longitude;
+        }
+        if (analysisResult.geoData.locationName) {
+          updateData.locationName = analysisResult.geoData.locationName;
+        }
+      }
+
+      // Save the generated description and/or geo data
+      if (Object.keys(updateData).length > 0) {
+        await payload.update({
+          collection: "postcard-designs",
+          id: designId,
+          data: updateData,
+        });
+        console.log("Updated design with:", updateData);
+      }
     } catch (error) {
-      console.error("Error generating description:", error);
+      console.error("Error analyzing image:", error);
     }
   }
 
