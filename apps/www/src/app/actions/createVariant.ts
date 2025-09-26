@@ -4,7 +4,9 @@ import { getPayload } from "payload";
 import configPromise from "../../../payload.config";
 import { cookies } from "next/headers";
 import OpenAI from "openai";
+import { toFile } from "openai/uploads";
 import { describeImage } from "@/lib/image-analysis";
+import sharp from "sharp";
 
 export async function createVariant(designId: string, customPrompt?: string) {
   console.log("=== Starting variant creation for design:", designId);
@@ -37,7 +39,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
   // Log the imageOriginal structure to understand what we're dealing with
   console.log(
     "Original image structure:",
-    JSON.stringify(design.imageOriginal, null, 2),
+    JSON.stringify(design.imageOriginal, null, 2)
   );
 
   // Initialize OpenAI
@@ -61,7 +63,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
     // Analyze the image
     const analysisResult = await describeImage(
       design.imageOriginal,
-      token.value,
+      token.value
     );
 
     if (needsDescription) {
@@ -132,67 +134,118 @@ export async function createVariant(designId: string, customPrompt?: string) {
     }
   }
 
-  // Create a creative prompt based on the analyzed image and description
+  // Get the original image data URL for better variant generation
+  let originalImageDataUrl: string | null = null;
+  if (design.imageOriginal) {
+    try {
+      // Get the media document
+      let mediaDoc = design.imageOriginal;
+      if (typeof design.imageOriginal === "string") {
+        mediaDoc = await payload.findByID({
+          collection: "media",
+          id: design.imageOriginal,
+          depth: 0,
+        });
+      }
+
+      if (mediaDoc) {
+        // Get the URL from the media document
+        const urlFromDoc = mediaDoc.url;
+        if (urlFromDoc) {
+          const baseUrl =
+            process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+          const fullUrl =
+            urlFromDoc.startsWith("http://") ||
+            urlFromDoc.startsWith("https://")
+              ? urlFromDoc
+              : `${baseUrl}${
+                  urlFromDoc.startsWith("/") ? "" : "/"
+                }${urlFromDoc}`;
+
+          // Fetch the image
+          const res = await fetch(fullUrl, {
+            headers: {
+              cookie: `payload-token=${token.value}`,
+            },
+          });
+
+          if (res.ok) {
+            const arrayBuf = await res.arrayBuffer();
+            const inputBuffer = Buffer.from(arrayBuf);
+
+            // Convert to JPEG and create data URL
+            const jpegBuffer = await sharp(inputBuffer)
+              .jpeg({ quality: 90 })
+              .toBuffer();
+            const base64 = jpegBuffer.toString("base64");
+            originalImageDataUrl = `data:image/jpeg;base64,${base64}`;
+            // Keep the original image buffer for image-to-image edits
+            var originalImageBuffer = jpegBuffer;
+            console.log(
+              "Successfully loaded original image for variant generation"
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading original image:", error);
+      // Continue without original image
+    }
+  }
+
+  // Build a simple, less-opinionated prompt. Use the original image and apply the user's transformation.
   let postcardPrompt = "";
+  const contextFromDescription = description
+    ? `Context about the original scene: "${description}".`
+    : "";
 
   if (customPrompt) {
-    // Use the custom prompt provided by the user
-    postcardPrompt = `Create a postcard variant of: "${design.name}"
-
-    Original image description: ${description}
-
-    Apply this specific style transformation: ${customPrompt}
-
-    Include this text elegantly integrated into the design: "${
-      description || "Greetings from a magical place!"
-    }"
-
-    Make sure the text is clear and readable while being part of the artistic design.
-    Keep the essence of the original while applying the requested style transformation.`;
+    postcardPrompt =
+      `${contextFromDescription} Create a variant of the original image. Apply this transformation: ${customPrompt}`.trim();
   } else {
-    // Use the default creative prompt
-    postcardPrompt = `Create a postcard variant of: "${design.name}"
-
-    Original image description: ${description}
-
-    Create a variation that transforms the original concept while keeping its essence.
-    Include this text elegantly integrated into the design: "${
-      description || "Greetings from a magical place!"
-    }"
-
-    Make it visually striking with:
-    - A creative reinterpretation of the original theme
-    - Rich colors and interesting composition
-    - A sense of wonder and delight
-    - Clear, readable text that's part of the artistic design
-    - A unique artistic style (e.g., vintage, impressionist, modern art, fantasy)
-
-    Style: Make it look like a premium artistic postcard with a distinct style different from the original.`;
+    postcardPrompt =
+      `${contextFromDescription} Create a faithful variant of the original image while keeping its main subjects and composition.`.trim();
   }
 
   try {
-    console.log("Generating image with prompt:", postcardPrompt);
+    console.log("Generating image variant from original using image edits");
 
-    // Generate new image with DALL-E 3
-    const imageResponse = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: postcardPrompt,
-      n: 1,
-      size: "1792x1024",
-      quality: "standard",
-      style: "vivid",
+    if (!originalImageDataUrl) {
+      throw new Error(
+        "Original image could not be loaded for variant generation"
+      );
+    }
+    if (
+      typeof (global as any).originalImageBuffer === "undefined" &&
+      typeof originalImageBuffer === "undefined"
+    ) {
+      // TypeScript guard; originalImageBuffer is created where the image was loaded
+    }
+
+    // Use image-to-image edit. We send the original image and a concise prompt.
+    const imageFile = await toFile(originalImageBuffer!, "original.jpg", {
+      type: "image/jpeg",
     });
 
-    const imageUrl = imageResponse.data?.[0]?.url;
-    console.log("Generated image URL:", imageUrl);
+    const editResponse = await openai.images.edit({
+      model: "gpt-image-1",
+      image: imageFile,
+      prompt: postcardPrompt,
+      n: 1,
+      size: "1536x1024",
+    });
 
-    if (!imageUrl) throw new Error("No image generated");
+    const imageUrl = editResponse.data?.[0]?.url;
+    if (!imageUrl) throw new Error("No image returned from edit endpoint");
 
-    // Download the image
-    console.log("Downloading generated image...");
-    const imageBuffer = await fetch(imageUrl).then((res) => res.arrayBuffer());
-    const buffer = Buffer.from(imageBuffer);
-    console.log("Downloaded image size:", buffer.length);
+    // Fetch the image from the URL
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) throw new Error("Failed to fetch generated image");
+    const arrayBuffer = await imageResponse.arrayBuffer();
+    const b64 = Buffer.from(arrayBuffer).toString("base64");
+
+    const buffer = Buffer.from(b64, "base64");
+    console.log("Generated variant image buffer size:", buffer.length);
 
     // Create a file-like object for Payload
     const file = {
@@ -228,7 +281,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
     console.error("Error generating variant - full details:", error);
     console.error(
       "Error message:",
-      error instanceof Error ? error.message : "Unknown error",
+      error instanceof Error ? error.message : "Unknown error"
     );
     throw new Error("Failed to generate variant image");
   }
