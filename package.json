@@ -16,5 +16,8 @@
   "devDependencies": {
     "turbo": "^2.5.8"
   },
-  "packageManager": "pnpm@10.0.0"
+  "packageManager": "pnpm@10.0.0",
+  "dependencies": {
+    "qrcode.react": "^4.2.0"
+  }
 }

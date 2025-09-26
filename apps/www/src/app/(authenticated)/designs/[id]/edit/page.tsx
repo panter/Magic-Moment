@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getDesign, updateDesign } from "@/app/actions/designs";
+import { getDesign, updateDesign, generatePostcardMessage } from "@/app/actions/designs";
 import { uploadImage } from "@/app/actions/upload";
 import { Button, Input, Textarea, ErrorMessage, ImageUpload, PostcardPreview } from "@repo/ui";
 
@@ -15,6 +15,7 @@ export default function EditDesignPage() {
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
+  const [generatingMessage, setGeneratingMessage] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const params = useParams();
@@ -148,29 +149,49 @@ export default function EditDesignPage() {
               placeholder="My Swiss Postcard"
             />
 
-            <Textarea
-              label="Description (optional)"
-              id="description"
-              value={description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setDescription(e.target.value)
-              }
-              rows={3}
-              disabled={loading}
-              placeholder="A beautiful postcard design..."
-            />
-
-            <Textarea
-              label="Default Message"
-              id="message"
-              value={message}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setMessage(e.target.value)
-              }
-              rows={5}
-              disabled={loading}
-              placeholder="Write your postcard message here..."
-            />
+            <div>
+              <div className="flex items-end gap-2 mb-2">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                  Message
+                </label>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    setGeneratingMessage(true);
+                    setError("");
+                    try {
+                      const result = await generatePostcardMessage(
+                        id,
+                        message,
+                        imageFile ? undefined : currentImageId || undefined
+                      );
+                      setMessage(result.message);
+                    } catch (err) {
+                      console.error("Error generating message:", err);
+                      setError("Failed to generate message");
+                    } finally {
+                      setGeneratingMessage(false);
+                    }
+                  }}
+                  variant="secondary"
+                  size="sm"
+                  disabled={loading || generatingMessage}
+                  loading={generatingMessage}
+                >
+                  {generatingMessage ? "Generating..." : "✨ Generate"}
+                </Button>
+              </div>
+              <Textarea
+                id="message"
+                value={message}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setMessage(e.target.value)
+                }
+                rows={5}
+                disabled={loading || generatingMessage}
+                placeholder="Write your postcard message here..."
+              />
+            </div>
 
             <ImageUpload
               label="Postcard Image"
@@ -184,6 +205,18 @@ export default function EditDesignPage() {
                 Current image will be kept if no new image is selected
               </p>
             )}
+
+            <Textarea
+              label="Description (optional)"
+              id="description"
+              value={description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setDescription(e.target.value)
+              }
+              rows={3}
+              disabled={loading}
+              placeholder="A beautiful postcard design..."
+            />
 
             <div className="flex gap-4">
               <Button
@@ -220,6 +253,7 @@ export default function EditDesignPage() {
               message={message || "Your message will appear here..."}
               recipientName="Jane Smith"
               recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
+              designId={id}
             />
           </div>
         </div>

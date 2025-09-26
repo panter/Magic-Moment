@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "./button";
 
 interface PostcardPreviewProps {
@@ -8,6 +9,7 @@ interface PostcardPreviewProps {
   message?: string;
   recipientName?: string;
   recipientAddress?: string;
+  designId?: string;
   className?: string;
 }
 
@@ -16,6 +18,7 @@ export function PostcardPreview({
   message = "Wishing you all the best from Switzerland!",
   recipientName = "John Doe",
   recipientAddress = "123 Main Street\n8001 Zurich\nSwitzerland",
+  designId,
   className = "",
 }: PostcardPreviewProps) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -23,17 +26,23 @@ export function PostcardPreview({
   return (
     <div className={`${className}`}>
       <div className="relative w-full max-w-[420px] mx-auto">
-        <div className="preserve-3d transition-transform duration-700" style={{
-          transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-          transformStyle: "preserve-3d",
-          position: "relative",
-          width: "100%",
-          aspectRatio: "148 / 105",
-        }}>
+        <div
+          className="preserve-3d transition-transform duration-700"
+          style={{
+            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+            transformStyle: "preserve-3d",
+            position: "relative",
+            width: "100%",
+            aspectRatio: "148 / 105",
+          }}
+        >
           {/* Front Side */}
-          <div className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white" style={{
-            backfaceVisibility: "hidden",
-          }}>
+          <div
+            className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+            style={{
+              backfaceVisibility: "hidden",
+            }}
+          >
             {frontImage ? (
               <img
                 src={frontImage}
@@ -45,13 +54,28 @@ export function PostcardPreview({
                 <p className="text-gray-500 text-lg">No image selected</p>
               </div>
             )}
+
+            {/* QR Code on Front */}
+            {designId && (
+              <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
+                <QRCodeSVG
+                  value={`http://localhost:3001/designs/${designId}`}
+                  size={48}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+            )}
           </div>
 
           {/* Back Side */}
-          <div className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white" style={{
-            backfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
-          }}>
+          <div
+            className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+            style={{
+              backfaceVisibility: "hidden",
+              transform: "rotateY(180deg)",
+            }}
+          >
             <div className="w-full h-full p-4 flex">
               {/* Left side - Message */}
               <div className="w-1/2 pr-3 flex flex-col">
@@ -61,7 +85,9 @@ export function PostcardPreview({
                   </p>
                 </div>
                 <div className="mt-2">
-                  <p className="text-xs text-gray-500">Sent with ❤️ from Switzerland</p>
+                  <p className="text-xs text-gray-500">
+                    Sent with ❤️ from Switzerland
+                  </p>
                 </div>
               </div>
 
@@ -84,12 +110,28 @@ export function PostcardPreview({
                 {/* Recipient Address */}
                 <div className="flex-1 flex items-center">
                   <div>
-                    <p className="text-sm font-semibold text-gray-800 mb-1">{recipientName}</p>
-                    <p className="text-xs text-gray-700 whitespace-pre-line">{recipientAddress}</p>
+                    <p className="text-sm font-semibold text-gray-800 mb-1">
+                      {recipientName}
+                    </p>
+                    <p className="text-xs text-gray-700 whitespace-pre-line">
+                      {recipientAddress}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* QR Code on Back */}
+            {designId && (
+              <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
+                <QRCodeSVG
+                  value={`http://localhost:3001/designs/${designId}`}
+                  size={48}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+            )}
           </div>
         </div>
 

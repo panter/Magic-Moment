@@ -16,7 +16,8 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const baseStyles = "rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center";
+  const baseStyles =
+    "rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center";
 
   const sizeStyles = {
     sm: "px-3 py-1.5 text-sm",

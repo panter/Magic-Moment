@@ -1,0 +1,8 @@
+node_modules
+.next
+.turbo
+dist
+build
+public
+*.min.js
+*.min.css
