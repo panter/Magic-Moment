@@ -1,3 +1,5 @@
+import { Button } from "@repo/ui/button";
+import { Card } from "@repo/ui/card";
 import Image from "next/image";
 
 export default function Home() {
@@ -49,6 +51,8 @@ export default function Home() {
           >
             Read our docs
           </a>
+          <Card title="Hello"> Hello </Card>
+          <Button> Hello </Button>
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
