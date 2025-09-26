@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "migrate": "turbo migrate",
     "start": "turbo start",
     "lint": "turbo lint",
     "format": "turbo format"

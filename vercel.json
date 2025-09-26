@@ -3,5 +3,5 @@
   "version": 2,
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm ci"
+  "buildCommand": "pnpm migrate && pnpm build"
 }

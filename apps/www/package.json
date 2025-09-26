@@ -8,7 +8,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
-    "ci": "payload migrate && pnpm build",
+    "migrate": "payload migrate",
     "format": "biome format --write",
     "payload": "payload"
   },
