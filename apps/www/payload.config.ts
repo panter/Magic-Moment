@@ -1,5 +1,6 @@
 import { buildConfig } from "payload";
-import { postgresAdapter } from "@payloadcms/db-postgres";
+import { vercelPostgresAdapter } from "@payloadcms/db-vercel-postgres";
+
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import path from "path";
@@ -159,7 +160,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-  db: postgresAdapter({
+  db: vercelPostgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || "",
     },

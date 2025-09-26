@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.57.0",
+    "@payloadcms/db-vercel-postgres": "^3.57.0",
     "@payloadcms/next": "^3.57.0",
     "@payloadcms/richtext-lexical": "^3.57.0",
     "@payloadcms/storage-uploadthing": "^3.57.0",
