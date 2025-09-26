@@ -1,0 +1,8 @@
+{
+  "name": "local-development",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up"
+  }
+}

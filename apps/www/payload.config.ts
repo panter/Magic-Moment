@@ -1,0 +1,168 @@
+import { buildConfig } from 'payload'
+import { postgresAdapter } from '@payloadcms/db-postgres'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+export default buildConfig({
+  admin: {
+    user: 'users',
+  },
+  collections: [
+    {
+      slug: 'users',
+      auth: true,
+      access: {
+        create: () => true,
+        read: () => true,
+        update: ({ req: { user } }) => !!user,
+        delete: ({ req: { user } }) => !!user,
+      },
+      fields: [
+        {
+          name: 'role',
+          type: 'select',
+          options: [
+            { label: 'Admin', value: 'admin' },
+            { label: 'User', value: 'user' },
+          ],
+          defaultValue: 'user',
+          required: true,
+        },
+      ],
+    },
+    {
+      slug: 'postcards',
+      admin: {
+        useAsTitle: 'title',
+      },
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'message',
+          type: 'richText',
+          editor: lexicalEditor({}),
+        },
+        {
+          name: 'recipientName',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'recipientAddress',
+          type: 'textarea',
+          required: true,
+        },
+        {
+          name: 'senderName',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
+        },
+        {
+          name: 'status',
+          type: 'select',
+          options: [
+            { label: 'Draft', value: 'draft' },
+            { label: 'Sent', value: 'sent' },
+            { label: 'Delivered', value: 'delivered' },
+          ],
+          defaultValue: 'draft',
+        },
+        {
+          name: 'aiGenerated',
+          type: 'checkbox',
+          defaultValue: false,
+        },
+        {
+          name: 'createdBy',
+          type: 'relationship',
+          relationTo: 'users',
+          required: true,
+        },
+      ],
+    },
+    {
+      slug: 'media',
+      upload: {
+        disableLocalStorage: true,
+        adapter: uploadthingStorage({
+          token: process.env.UPLOADTHING_TOKEN!,
+        }),
+      },
+      fields: [
+        {
+          name: 'alt',
+          type: 'text',
+        },
+      ],
+    },
+    {
+      slug: 'templates',
+      admin: {
+        useAsTitle: 'name',
+      },
+      fields: [
+        {
+          name: 'name',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+        },
+        {
+          name: 'category',
+          type: 'select',
+          options: [
+            { label: 'Holiday', value: 'holiday' },
+            { label: 'Birthday', value: 'birthday' },
+            { label: 'Thank You', value: 'thankyou' },
+            { label: 'Greeting', value: 'greeting' },
+            { label: 'Travel', value: 'travel' },
+          ],
+        },
+        {
+          name: 'templateImage',
+          type: 'upload',
+          relationTo: 'media',
+        },
+        {
+          name: 'defaultMessage',
+          type: 'richText',
+          editor: lexicalEditor({}),
+        },
+        {
+          name: 'isActive',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+      ],
+    },
+  ],
+  editor: lexicalEditor({}),
+  secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',
+  typescript: {
+    outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URI || '',
+    },
+  }),
+  plugins: [],
+})
