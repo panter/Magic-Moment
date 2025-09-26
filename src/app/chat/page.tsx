@@ -3,7 +3,7 @@
 import { useChat } from "ai/react";
 
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
     useChat();
 
   return (
@@ -11,6 +11,12 @@ export default function Chat() {
       <h1 className="text-3xl font-bold mb-8">
         AI Chat Example with Anthropic
       </h1>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <strong>Error:</strong> {error.message || "Something went wrong. Please try again."}
+        </div>
+      )}
 
       <div className="flex flex-col space-y-4 mb-8 min-h-[400px] border border-gray-200 rounded-lg p-4">
         {messages.length === 0 ? (
