@@ -47,6 +47,29 @@ This is a Turborepo monorepo with a Next.js 15 application using:
   - Utilities and hooks in `apps/www/src/lib/`
   - API routes in `apps/www/src/app/api/`
 
+### Component Guidelines
+
+**IMPORTANT: Always extract reusable UI components to `@repo/ui`**
+
+Before creating a new component:
+1. **Check existing components** in `packages/ui/src/` - reuse when possible
+2. **Extract shared components** like buttons, inputs, cards, modals to `@repo/ui`
+3. **Keep business logic separate** - UI components should be presentational
+4. **Use consistent styling** - Swiss Post yellow (#ffcc02) for primary actions
+
+Existing UI Components in `@repo/ui`:
+- `Button` - Supports primary/secondary/danger/ghost variants with loading states
+- `Input` - Text input with label and error handling
+- `Textarea` - Multi-line text input with label and error handling
+- `ErrorMessage` - Consistent error message display
+- `ImageUpload` - Image file upload with preview
+- `Card` - Content container with optional title
+
+Import components from `@repo/ui` in application code:
+```tsx
+import { Button, Input, Card } from '@repo/ui'
+```
+
 ## Project Context
 
 This repository is for the "Magic Moment" challenge at the Zurich hackathon (Swiss {ai} Week, September 26-27, 2025). The data in the `data/` directory includes:

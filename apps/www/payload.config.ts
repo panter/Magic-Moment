@@ -99,11 +99,7 @@ export default buildConfig({
     },
     {
       slug: 'media',
-      upload: {
-        staticDir: 'media',
-        staticURL: '/media',
-        mimeTypes: ['image/*'],
-      },
+      upload: true,
       fields: [
         {
           name: 'alt',
@@ -165,5 +161,13 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  plugins: [],
+  plugins: [
+    vercelBlobStorage({
+      enabled: true,
+      collections: {
+        media: true,
+      },
+      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+    }),
+  ],
 })

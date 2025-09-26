@@ -3,8 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    ".": "./src/index.tsx",
     "./button": "./src/button.tsx",
-    "./card": "./src/card.tsx"
+    "./card": "./src/card.tsx",
+    "./input": "./src/input.tsx",
+    "./textarea": "./src/textarea.tsx",
+    "./error-message": "./src/error-message.tsx",
+    "./image-upload": "./src/image-upload.tsx"
   },
   "scripts": {
     "lint": "biome check",
