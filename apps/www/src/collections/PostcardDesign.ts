@@ -127,6 +127,100 @@ export const PostcardDesign: CollectionConfig = {
       type: 'textarea',
     },
     {
+      name: 'overlays',
+      type: 'array',
+      admin: {
+        description: 'Text overlays to display on the postcard',
+      },
+      fields: [
+        {
+          name: 'id',
+          type: 'text',
+          required: true,
+          admin: {
+            hidden: true,
+          },
+        },
+        {
+          name: 'text',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'fontSize',
+          type: 'number',
+          defaultValue: 24,
+        },
+        {
+          name: 'fontFamily',
+          type: 'select',
+          options: [
+            { label: 'Sans Serif', value: 'sans-serif' },
+            { label: 'Serif', value: 'serif' },
+            { label: 'Cursive', value: 'cursive' },
+            { label: 'Display', value: 'display' },
+          ],
+          defaultValue: 'sans-serif',
+        },
+        {
+          name: 'color',
+          type: 'text',
+          defaultValue: '#ffffff',
+        },
+        {
+          name: 'strokeColor',
+          type: 'text',
+          defaultValue: '#000000',
+        },
+        {
+          name: 'strokeWidth',
+          type: 'number',
+          defaultValue: 2,
+        },
+        {
+          name: 'x',
+          type: 'number',
+          defaultValue: 50,
+          admin: {
+            description: 'X position as percentage (0-100)',
+          },
+        },
+        {
+          name: 'y',
+          type: 'number',
+          defaultValue: 50,
+          admin: {
+            description: 'Y position as percentage (0-100)',
+          },
+        },
+        {
+          name: 'rotation',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Rotation in degrees',
+          },
+        },
+        {
+          name: 'opacity',
+          type: 'number',
+          defaultValue: 1,
+          min: 0,
+          max: 1,
+        },
+        {
+          name: 'textAlign',
+          type: 'select',
+          options: [
+            { label: 'Left', value: 'left' },
+            { label: 'Center', value: 'center' },
+            { label: 'Right', value: 'right' },
+          ],
+          defaultValue: 'center',
+        },
+      ],
+    },
+    {
       name: 'category',
       type: 'select',
       options: [
