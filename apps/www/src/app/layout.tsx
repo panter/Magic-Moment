@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0; // disable ISR
+export const fetchCache = "force-no-store";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
