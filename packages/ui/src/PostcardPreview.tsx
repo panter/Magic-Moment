@@ -150,17 +150,19 @@ export function PostcardPreview({
 
   return (
     <div className={`${className}`}>
-      <div className="relative w-full max-w-[420px] mx-auto">
-        <div
-          className="preserve-3d transition-transform duration-700"
-          style={{
-            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            transformStyle: "preserve-3d",
-            position: "relative",
-            width: "100%",
-            aspectRatio: "148 / 105",
-          }}
-        >
+      <div className="relative w-full max-w-[420px] mx-auto flex items-start gap-4">
+        {/* 3D Perspective Container */}
+        <div className="flex-1" style={{ perspective: "1000px" }}>
+          <div
+            className="preserve-3d transition-transform duration-700"
+            style={{
+              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+              transformStyle: "preserve-3d",
+              position: "relative",
+              width: "100%",
+              aspectRatio: "148 / 105",
+            }}
+          >
           {/* Front Side */}
           <div
             className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
@@ -409,13 +411,15 @@ export function PostcardPreview({
             )}
           </div>
         </div>
+        </div>
 
-        {/* Flip Button */}
-        <div className="mt-6 text-center">
+        {/* Flip Button - positioned beside the card */}
+        <div className="flex-shrink-0 pt-4">
           <Button
             onClick={() => setIsFlipped(!isFlipped)}
             variant="secondary"
             size="sm"
+            className="whitespace-nowrap"
           >
             {isFlipped ? "Show Front" : "Show Back"}
           </Button>
