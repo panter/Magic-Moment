@@ -59,7 +59,7 @@ export default function EditDesignPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   // Debounced auto-save function for overlays
   const debouncedAutoSave = useCallback(
@@ -102,6 +102,7 @@ export default function EditDesignPage() {
           setError("Design not found");
           return;
         }
+
         setName(design.name);
         setDescription(design.description || "");
         setMessage(design.defaultMessage || "");
