@@ -103,6 +103,38 @@ export const PostcardDesign: CollectionConfig = {
       defaultValue: false,
     },
     {
+      name: 'originalDesign',
+      type: 'relationship',
+      relationTo: 'postcard-designs',
+      admin: {
+        description: 'If this is a variant, reference to the original design',
+      },
+    },
+    {
+      name: 'variants',
+      type: 'relationship',
+      relationTo: 'postcard-designs',
+      hasMany: true,
+      admin: {
+        description: 'Variants created from this design',
+      },
+    },
+    {
+      name: 'isVariant',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether this design is a variant of another design',
+      },
+    },
+    {
+      name: 'variantPrompt',
+      type: 'textarea',
+      admin: {
+        description: 'The prompt used to generate this variant (if applicable)',
+      },
+    },
+    {
       name: 'createdBy',
       type: 'relationship',
       relationTo: 'users',

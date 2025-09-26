@@ -40,6 +40,9 @@ importers:
       next:
         specifier: 15.5.4
         version: 15.5.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4)
+      openai:
+        specifier: ^5.23.0
+        version: 5.23.0(ws@8.18.3)
       payload:
         specifier: ^3.57.0
         version: 3.57.0(graphql@16.11.0)(typescript@5.9.2)
@@ -52,6 +55,9 @@ importers:
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      sharp:
+        specifier: ^0.34.4
+        version: 0.34.4
     devDependencies:
       '@biomejs/biome':
         specifier: 2.2.0
@@ -2094,6 +2100,18 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
+  openai@5.23.0:
+    resolution: {integrity: sha512-Cfq155NHzI7VWR67LUNJMIgPZy2oSh7Fld/OKhxq648BiUjELAvcge7g30xJ6vAfwwXf6TVK0KKuN+3nmIJG/A==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -3172,8 +3190,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@img/colour@1.0.0':
-    optional: true
+  '@img/colour@1.0.0': {}
 
   '@img/sharp-darwin-arm64@0.34.4':
     optionalDependencies:
@@ -4725,6 +4742,10 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
+  openai@5.23.0(ws@8.18.3):
+    optionalDependencies:
+      ws: 8.18.3
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -5052,8 +5073,7 @@ snapshots:
 
   secure-json-parse@2.7.0: {}
 
-  semver@7.7.2:
-    optional: true
+  semver@7.7.2: {}
 
   sharp@0.34.4:
     dependencies:
@@ -5083,7 +5103,6 @@ snapshots:
       '@img/sharp-win32-arm64': 0.34.4
       '@img/sharp-win32-ia32': 0.34.4
       '@img/sharp-win32-x64': 0.34.4
-    optional: true
 
   simple-wcswidth@1.1.2: {}
 
