@@ -17,6 +17,7 @@ import {
   ErrorMessage,
   ImageUpload,
   PostcardPreview,
+  Modal,
 } from "@repo/ui";
 
 export default function EditDesignPage() {
@@ -39,6 +40,8 @@ export default function EditDesignPage() {
   const [loadingDesign, setLoadingDesign] = useState(true);
   const [generatingMessage, setGeneratingMessage] = useState(false);
   const [generatingVariant, setGeneratingVariant] = useState(false);
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [variantPrompt, setVariantPrompt] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const params = useParams();
@@ -121,11 +124,12 @@ export default function EditDesignPage() {
     }
   };
 
-  const handleGenerateVariant = async () => {
+  const handleGenerateVariant = async (promptText?: string) => {
     setGeneratingVariant(true);
+    setShowPromptModal(false);
     setError("");
     try {
-      const result = await createVariant(id);
+      const result = await createVariant(id, promptText || undefined);
       // Reload the design to get the new variant
       const updatedDesign = await getDesign(id);
       if (updatedDesign.imageVariantsData) {
@@ -142,6 +146,8 @@ export default function EditDesignPage() {
           setCurrentImageId(newVariant.id);
         }
       }
+      // Clear the prompt after successful generation
+      setVariantPrompt("");
     } catch (err) {
       console.error("Error generating variant:", err);
       setError("Failed to generate variant");
@@ -149,6 +155,17 @@ export default function EditDesignPage() {
       setGeneratingVariant(false);
     }
   };
+
+  const examplePrompts = [
+    "Make it comic book style with bold colors",
+    "Transform into watercolor painting",
+    "Add vibrant neon colors and cyberpunk aesthetic",
+    "Make it look vintage and nostalgic",
+    "Apply impressionist art style",
+    "Create a minimalist black and white version",
+    "Add magical fairy tale elements",
+    "Make it look like a retro travel poster",
+  ];
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
@@ -347,7 +364,7 @@ export default function EditDesignPage() {
                   </label>
                   <Button
                     type="button"
-                    onClick={handleGenerateVariant}
+                    onClick={() => setShowPromptModal(true)}
                     variant="primary"
                     size="sm"
                     disabled={loading || generatingVariant || !imageOriginalId}
@@ -484,6 +501,73 @@ export default function EditDesignPage() {
           </div>
         </div>
       </div>
+
+      {/* Variant Prompt Modal */}
+      <Modal
+        isOpen={showPromptModal}
+        onClose={() => setShowPromptModal(false)}
+        title="Create a Variant"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Describe how you'd like to transform your postcard design. Be
+            creative!
+          </p>
+
+          <Textarea
+            label="Style Prompt"
+            id="variantPrompt"
+            value={variantPrompt}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setVariantPrompt(e.target.value)
+            }
+            rows={3}
+            placeholder="e.g., Make it look like a vintage travel poster with warm sunset colors"
+          />
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Need inspiration? Try these examples:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {examplePrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setVariantPrompt(prompt)}
+                  className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              onClick={() => setShowPromptModal(false)}
+              variant="secondary"
+              size="md"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handleGenerateVariant(variantPrompt)}
+              variant="primary"
+              size="md"
+              className="flex-1"
+              disabled={generatingVariant}
+              loading={generatingVariant}
+            >
+              {generatingVariant ? "Creating..." : "Create Variant"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
