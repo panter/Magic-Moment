@@ -15,12 +15,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a Next.js 15 application using:
+This is a Turborepo monorepo with a Next.js 15 application using:
 - **React 19.1** with TypeScript
 - **TurboPack** for faster builds and HMR
 - **Tailwind CSS v4** for styling (using PostCSS)
 - **Biome** for linting and formatting (replaces ESLint/Prettier)
-- **App Router** architecture in `src/app/`
+- **App Router** architecture
+
+### Monorepo Structure
+
+- **`packages/ui/`** (`@repo/ui`): Shared UI components library
+  - Place reusable React components here
+  - Components that can be used across different apps
+  - Design system components (buttons, modals, cards, etc.)
+
+- **`apps/www/`** (`@repo/www`): Main Next.js application
+  - Features and screens specific to the application
+  - Business logic and page components
+  - API routes and app-specific functionality
+  - Located in `apps/www/src/app/` using App Router
+
+### Where Things Go
+
+- **Shared UI Components**: `packages/ui/src/`
+  - Examples: Button, Card, Modal, Form components
+  - Generic, reusable components without business logic
+
+- **Application Features**: `apps/www/src/`
+  - Page components in `apps/www/src/app/`
+  - Feature-specific components in `apps/www/src/components/`
+  - Utilities and hooks in `apps/www/src/lib/`
+  - API routes in `apps/www/src/app/api/`
 
 ## Project Context
 
