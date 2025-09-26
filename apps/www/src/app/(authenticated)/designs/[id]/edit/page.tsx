@@ -102,7 +102,17 @@ export default function EditDesignPage() {
         message,
         imageFile ? undefined : currentImageId || undefined
       );
-      setMessage(result.message);
+
+      // Save the generated message immediately
+      await updateDesign(id, {
+        defaultMessage: result.message,
+        // Also save description if it was generated
+        ...(result.description && !description ? { description: result.description } : {})
+      });
+
+      // Refresh the page to show the updated data
+      router.refresh();
+      window.location.reload();
     } catch (err) {
       console.error("Error generating message:", err);
       setError("Failed to generate message");
