@@ -2,9 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getDesign, updateDesign, generatePostcardMessage } from "@/app/actions/designs";
+import {
+  getDesign,
+  updateDesign,
+  generatePostcardMessage,
+} from "@/app/actions/designs";
+import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
 import { uploadImage } from "@/app/actions/upload";
-import { Button, Input, Textarea, ErrorMessage, ImageUpload, PostcardPreview } from "@repo/ui";
+import {
+  Button,
+  Input,
+  Textarea,
+  ErrorMessage,
+  ImageUpload,
+  PostcardPreview,
+} from "@repo/ui";
 
 export default function EditDesignPage() {
   const [name, setName] = useState("");
@@ -31,7 +43,10 @@ export default function EditDesignPage() {
         }
         setName(design.name);
         setDescription(design.description || "");
-        setMessage(design.defaultMessage || "Greetings from Switzerland!\n\nHaving a wonderful time exploring the beautiful Swiss Alps. The views are breathtaking and the chocolate is delicious!\n\nWish you were here!");
+        setMessage(
+          design.defaultMessage ||
+            "Greetings from Switzerland!\n\nHaving a wonderful time exploring the beautiful Swiss Alps. The views are breathtaking and the chocolate is delicious!\n\nWish you were here!"
+        );
         setCurrentImageId(design.frontImage);
         // If design has an image, set it as preview
         if (design.frontImageUrl) {
@@ -46,6 +61,24 @@ export default function EditDesignPage() {
     }
     loadDesign();
   }, [id]);
+
+  const generateMessage = async () => {
+    setGeneratingMessage(true);
+    setError("");
+    try {
+      const result = await generatePostcardMessage(
+        id,
+        message,
+        imageFile ? undefined : currentImageId || undefined
+      );
+      setMessage(result.message);
+    } catch (err) {
+      console.error("Error generating message:", err);
+      setError("Failed to generate message");
+    } finally {
+      setGeneratingMessage(false);
+    }
+  };
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
@@ -83,7 +116,7 @@ export default function EditDesignPage() {
         const formData = new FormData();
         formData.append("file", imageFile);
         const uploadedImage = await uploadImage(formData);
-        imageId = uploadedImage.id;
+        imageId = uploadedImage.id as string;
       }
 
       // Update the design
@@ -132,115 +165,122 @@ export default function EditDesignPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form Section */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && <ErrorMessage>{error}</ErrorMessage>}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <ErrorMessage>{error}</ErrorMessage>}
+              <Input
+                label="Design Name"
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setName(e.target.value)
+                }
+                required
+                disabled={loading}
+                placeholder="My Swiss Postcard"
+              />
 
-            <Input
-              label="Design Name"
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setName(e.target.value)
-              }
-              required
-              disabled={loading}
-              placeholder="My Swiss Postcard"
-            />
-
-            <div>
-              <div className="flex items-end gap-2 mb-2">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-                  Message
-                </label>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    setGeneratingMessage(true);
-                    setError("");
-                    try {
-                      const result = await generatePostcardMessage(
-                        id,
-                        message,
-                        imageFile ? undefined : currentImageId || undefined
-                      );
-                      setMessage(result.message);
-                    } catch (err) {
-                      console.error("Error generating message:", err);
-                      setError("Failed to generate message");
-                    } finally {
-                      setGeneratingMessage(false);
+              <div>
+                <div className="flex items-end justify-between mb-2">
+                  <div className="flex items-end gap-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Message
+                    </label>
+                    <Button
+                      type="button"
+                      onClick={generateMessage}
+                      variant="secondary"
+                      size="sm"
+                      disabled={loading || generatingMessage}
+                      loading={generatingMessage}
+                    >
+                      {generatingMessage ? "Generating..." : "✨ Generate"}
+                    </Button>
+                  </div>
+                  <span
+                    className={`text-sm ${
+                      message.length > MESSAGE_CHAR_LIMIT
+                        ? "text-red-600 font-semibold"
+                        : message.length > MESSAGE_CHAR_LIMIT * 0.9
+                        ? "text-amber-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {message.length}/{MESSAGE_CHAR_LIMIT}
+                  </span>
+                </div>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    const newValue = e.target.value;
+                    if (newValue.length <= MESSAGE_CHAR_LIMIT) {
+                      setMessage(newValue);
                     }
                   }}
-                  variant="secondary"
-                  size="sm"
+                  rows={5}
                   disabled={loading || generatingMessage}
-                  loading={generatingMessage}
+                  placeholder="Write your postcard message here..."
+                />
+                {message.length >= MESSAGE_CHAR_LIMIT && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Maximum character limit reached
+                  </p>
+                )}
+              </div>
+
+              <ImageUpload
+                label="Postcard Image"
+                value={imageFile}
+                preview={imagePreview}
+                onChange={handleImageChange}
+                disabled={loading}
+              />
+              {!imageFile && currentImageId && (
+                <p className="text-sm text-gray-600 -mt-4">
+                  Current image will be kept if no new image is selected
+                </p>
+              )}
+
+              <Textarea
+                label="Description (optional)"
+                id="description"
+                value={description}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setDescription(e.target.value)
+                }
+                rows={3}
+                disabled={loading}
+                placeholder="A beautiful postcard design..."
+              />
+
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  onClick={() => router.push("/designs")}
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
+                  disabled={loading}
                 >
-                  {generatingMessage ? "Generating..." : "✨ Generate"}
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                  disabled={!name}
+                  loading={loading}
+                >
+                  {loading ? "Updating..." : "Update Design"}
                 </Button>
               </div>
-              <Textarea
-                id="message"
-                value={message}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setMessage(e.target.value)
-                }
-                rows={5}
-                disabled={loading || generatingMessage}
-                placeholder="Write your postcard message here..."
-              />
-            </div>
-
-            <ImageUpload
-              label="Postcard Image"
-              value={imageFile}
-              preview={imagePreview}
-              onChange={handleImageChange}
-              disabled={loading}
-            />
-            {!imageFile && currentImageId && (
-              <p className="text-sm text-gray-600 -mt-4">
-                Current image will be kept if no new image is selected
-              </p>
-            )}
-
-            <Textarea
-              label="Description (optional)"
-              id="description"
-              value={description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setDescription(e.target.value)
-              }
-              rows={3}
-              disabled={loading}
-              placeholder="A beautiful postcard design..."
-            />
-
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                onClick={() => router.push("/designs")}
-                variant="secondary"
-                size="lg"
-                className="flex-1"
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="flex-1"
-                disabled={!name}
-                loading={loading}
-              >
-                {loading ? "Updating..." : "Update Design"}
-              </Button>
-            </div>
-          </form>
+            </form>
           </div>
 
           {/* Preview Section */}

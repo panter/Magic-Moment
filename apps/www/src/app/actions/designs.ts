@@ -5,6 +5,7 @@ import configPromise from "../../../payload.config";
 import { cookies } from "next/headers";
 import OpenAI from "openai";
 import { describeImage } from "@/lib/image-analysis";
+import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
 
 export async function getUserDesigns() {
   const payload = await getPayload({ config: configPromise });
@@ -157,7 +158,8 @@ export async function getDesign(id: string) {
 export async function generatePostcardMessage(
   designId: string,
   currentMessage?: string,
-  imageId?: string
+  imageId?: string,
+  retryCount = 0
 ) {
   const payload = await getPayload({ config: configPromise });
   const token = (await cookies()).get("payload-token");
@@ -216,26 +218,26 @@ export async function generatePostcardMessage(
       ? `You have a postcard with this image: "${description}".
          The current message is: "${currentMessage}".
          Generate an improved, creative postcard message that builds on the current message.
-         Keep it personal, warm, and appropriate for a postcard (3-4 sentences max).
-         Make it sound natural and heartfelt.`
+         IMPORTANT: Keep it under ${MESSAGE_CHAR_LIMIT} characters (including spaces and punctuation).
+         Make it personal, warm, and natural.`
       : `You have a postcard with this image: "${description || 'a beautiful scene'}".
          Generate a creative, warm postcard message that relates to the image.
-         Keep it personal and appropriate for a postcard (3-4 sentences max).
-         Make it sound natural and heartfelt, as if written to a dear friend.`;
+         IMPORTANT: Keep it under ${MESSAGE_CHAR_LIMIT} characters (including spaces and punctuation).
+         Make it personal and heartfelt, as if written to a dear friend.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "You are a creative writer helping to compose heartfelt postcard messages. Write in first person, as if the sender is writing to someone they care about."
+          content: `You are a creative writer helping to compose heartfelt postcard messages. Write in first person, as if the sender is writing to someone they care about. STRICT LIMIT: ${MESSAGE_CHAR_LIMIT} characters maximum. Be concise but meaningful.`
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      max_tokens: 150,
+      max_tokens: 100,
       temperature: 0.8,
     });
 
@@ -245,7 +247,18 @@ export async function generatePostcardMessage(
       throw new Error("Failed to generate message");
     }
 
-    return { message: generatedMessage, description };
+    // Check if message is within limit, retry if too long
+    if (generatedMessage.length > MESSAGE_CHAR_LIMIT && retryCount < 3) {
+      console.log(`Message too long (${generatedMessage.length} chars), retrying...`);
+      return generatePostcardMessage(designId, currentMessage, imageId, retryCount + 1);
+    }
+
+    // If still too long after retries, truncate
+    const finalMessage = generatedMessage.length > MESSAGE_CHAR_LIMIT
+      ? generatedMessage.substring(0, MESSAGE_CHAR_LIMIT - 3) + "..."
+      : generatedMessage;
+
+    return { message: finalMessage, description, charCount: finalMessage.length };
   } catch (error) {
     console.error("Error generating postcard message:", error);
     throw new Error("Failed to generate message");
