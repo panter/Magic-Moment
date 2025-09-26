@@ -86,9 +86,11 @@ export async function uploadImage(formData: FormData): Promise<any> {
   ) {
     console.log("Converting HEIC to JPEG...");
     try {
-      const convertedBuffer = await import("sharp").then((sharp) => sharp.default(buffer)
-        .jpeg({ quality: 90 })
-        .toBuffer();
+      const convertedBuffer = await import("sharp")
+        .then((sharp) => sharp.default(buffer))
+        .then((sharp) => sharp.jpeg({ quality: 90 }))
+        .then((sharp) => sharp.toBuffer());
+
       buffer = Buffer.from(convertedBuffer);
       mimetype = "image/jpeg";
       filename = filename.replace(/\.heic$/i, ".jpg");
