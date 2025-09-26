@@ -1,7 +1,6 @@
 "use server";
 
 import OpenAI from "openai";
-import sharp from "sharp";
 import { getPayload } from "payload";
 import configPromise from "../../payload.config";
 import {
@@ -80,7 +79,9 @@ export async function describeImage(
   }
 
   // Convert buffer to data URL for OpenAI
-  const jpegBuffer = await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer();
+  const jpegBuffer = await import("sharp").then((sharp) =>
+    sharp.default(imageBuffer).jpeg({ quality: 90 }).toBuffer()
+  );
   const base64 = jpegBuffer.toString("base64");
   const imageDataUrl = `data:image/jpeg;base64,${base64}`;
 

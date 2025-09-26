@@ -3,7 +3,7 @@
 import { getPayload } from "payload";
 import configPromise from "../../../payload.config";
 import { cookies } from "next/headers";
-import sharp from "sharp";
+
 import { extractLocationFromImage } from "@/lib/exif-location";
 import { isVideoFile, uploadVideoToCloudinary } from "@/lib/cloudinary";
 
@@ -86,7 +86,7 @@ export async function uploadImage(formData: FormData): Promise<any> {
   ) {
     console.log("Converting HEIC to JPEG...");
     try {
-      const convertedBuffer = await sharp(buffer)
+      const convertedBuffer = await import("sharp").then((sharp) => sharp.default(buffer)
         .jpeg({ quality: 90 })
         .toBuffer();
       buffer = Buffer.from(convertedBuffer);
