@@ -20,14 +20,14 @@
     "@vercel/blob": "^2.0.0",
     "cloudinary": "^2.7.0",
     "exifr": "^7.1.3",
-    "next": "15.5.4",
+    "next": "^15.5.4",
     "next-cloudinary": "^6.16.0",
     "openai": "^5.23.0",
     "payload": "^3.57.0",
     "pg": "^8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sharp": "^0.34.4"
+    "sharp": "0.34.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
@@ -37,17 +37,5 @@
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "pnpm": {
-    "supportedArchitectures": {
-      "os": [
-        "linux",
-        "current"
-      ],
-      "cpu": [
-        "x64",
-        "arm64"
-      ]
-    }
   }
 }
