@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { deleteDesign } from '@/app/actions/designs'
 import { useRouter } from 'next/navigation'
+import { Button } from '@repo/ui'
 
 export default function DesignCard({ design }: { design: any }) {
   const router = useRouter()
@@ -55,18 +56,19 @@ export default function DesignCard({ design }: { design: any }) {
           <span>{new Date(design.createdAt).toLocaleDateString()}</span>
         </div>
         <div className="flex gap-2">
-          <Link
-            href={`/designs/${design.id}/edit`}
-            className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition duration-200 text-sm font-medium"
-          >
-            Edit
+          <Link href={`/designs/${design.id}/edit`} className="flex-1">
+            <Button variant="secondary" size="sm" className="w-full">
+              Edit
+            </Button>
           </Link>
-          <button
+          <Button
             onClick={handleDelete}
-            className="flex-1 text-center bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-lg transition duration-200 text-sm font-medium"
+            variant="danger"
+            size="sm"
+            className="flex-1"
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     </div>

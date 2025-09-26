@@ -103,3 +103,37 @@ export async function getDesignById(id: string) {
 
   return design
 }
+
+export async function getDesign(id: string) {
+  const payload = await getPayload({ config: configPromise })
+  const token = (await cookies()).get('payload-token')
+
+  if (!token) {
+    throw new Error('Not authenticated')
+  }
+
+  const headers = new Headers()
+  headers.set('cookie', `payload-token=${token.value}`)
+  const { user } = await payload.auth({ headers })
+
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  const design = await payload.findByID({
+    collection: 'postcard-designs',
+    id,
+    depth: 1, // Include related media
+  })
+
+  // Add image URL if frontImage exists
+  let frontImageUrl = null
+  if (design.frontImage && typeof design.frontImage === 'object') {
+    frontImageUrl = design.frontImage.url
+  }
+
+  return {
+    ...design,
+    frontImageUrl,
+  }
+}
