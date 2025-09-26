@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import OpenAI from "openai";
 import { describeImage } from "@/lib/image-analysis";
 
-export async function createVariant(designId: string) {
+export async function createVariant(designId: string, customPrompt?: string) {
   console.log("=== Starting variant creation for design:", designId);
   const payload = await getPayload({ config: configPromise });
   const token = (await cookies()).get("payload-token");
@@ -72,36 +72,62 @@ export async function createVariant(designId: string) {
     console.log("Generated and saved description:", description);
   }
 
-  // Generate a creative variant style name with AI
+  // Generate a creative variant style name based on the custom prompt or AI
   let variantStyle = "Magic Edition";
-  try {
-    const nameResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            'Generate a creative, short style name for a postcard variant. Return only 1-3 words that describe a unique style or mood. Examples: "Sunset Dreams", "Vintage Romance", "Ocean Breeze"',
-        },
-        {
-          role: "user",
-          content: `Create a variant style name for a postcard with this description: "${
-            description || design.name
-          }"`,
-        },
-      ],
-      max_tokens: 20,
-    });
-    variantStyle =
-      nameResponse.choices[0].message.content?.trim() || "Magic Edition";
-  } catch (error) {
-    console.error("Error generating variant style name:", error);
+  if (customPrompt) {
+    // Extract a short style name from the custom prompt
+    const words = customPrompt.split(' ').slice(0, 3);
+    variantStyle = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  } else {
+    try {
+      const nameResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              'Generate a creative, short style name for a postcard variant. Return only 1-3 words that describe a unique style or mood. Examples: "Sunset Dreams", "Vintage Romance", "Ocean Breeze"',
+          },
+          {
+            role: "user",
+            content: `Create a variant style name for a postcard with this description: "${
+              description || design.name
+            }"`,
+          },
+        ],
+        max_tokens: 20,
+      });
+      variantStyle =
+        nameResponse.choices[0].message.content?.trim() || "Magic Edition";
+    } catch (error) {
+      console.error("Error generating variant style name:", error);
+    }
   }
 
   // Create a creative prompt based on the analyzed image and description
-  const postcardPrompt = `Create a postcard variant of: "${
-    design.name
-  }"
+  let postcardPrompt = "";
+
+  if (customPrompt) {
+    // Use the custom prompt provided by the user
+    postcardPrompt = `Create a postcard variant of: "${
+      design.name
+    }"
+
+    Original image description: ${description}
+
+    Apply this specific style transformation: ${customPrompt}
+
+    Include this text elegantly integrated into the design: "${
+      description || "Greetings from a magical place!"
+    }"
+
+    Make sure the text is clear and readable while being part of the artistic design.
+    Keep the essence of the original while applying the requested style transformation.`;
+  } else {
+    // Use the default creative prompt
+    postcardPrompt = `Create a postcard variant of: "${
+      design.name
+    }"
 
     Original image description: ${description}
 
@@ -118,6 +144,7 @@ export async function createVariant(designId: string) {
     - A unique artistic style (e.g., vintage, impressionist, modern art, fantasy)
 
     Style: Make it look like a premium artistic postcard with a distinct style different from the original.`;
+  }
 
   try {
     console.log("Generating image with prompt:", postcardPrompt);
