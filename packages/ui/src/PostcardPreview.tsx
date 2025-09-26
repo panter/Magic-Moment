@@ -328,7 +328,10 @@ export function PostcardPreview({
             {designId && (
               <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
                 <QRCodeSVG
-                  value={`http://localhost:3001/designs/${designId}`}
+                  value={`${
+                    process.env.NEXT_PUBLIC_SERVER_URL ||
+                    "http://localhost:3000"
+                  }/designs/${designId}`}
                   size={48}
                   level="M"
                   includeMargin={false}
@@ -394,7 +397,10 @@ export function PostcardPreview({
             {designId && (
               <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
                 <QRCodeSVG
-                  value={`http://localhost:3001/designs/${designId}`}
+                  value={`${
+                    process.env.NEXT_PUBLIC_SERVER_URL ||
+                    "http://localhost:3001"
+                  }/designs/${designId}`}
                   size={48}
                   level="M"
                   includeMargin={false}

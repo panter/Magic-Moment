@@ -2,7 +2,10 @@ import OpenAI from "openai";
 import sharp from "sharp";
 import { getPayload } from "payload";
 import configPromise from "../../payload.config";
-import { extractLocationFromImage, formatLocationForDescription } from "./exif-location";
+import {
+  extractLocationFromImage,
+  formatLocationForDescription,
+} from "./exif-location";
 
 interface GeoData {
   latitude?: number;
@@ -24,7 +27,7 @@ interface ImageAnalysisResult {
  */
 export async function describeImage(
   mediaRef: string | any,
-  authToken: string
+  authToken: string,
 ): Promise<ImageAnalysisResult> {
   // Initialize OpenAI
   const apiKey = process.env.OPENAI_API_KEY;
@@ -58,13 +61,18 @@ export async function describeImage(
 
   // Log EXIF extraction results
   if (locationInfo.latitude && locationInfo.longitude) {
-    console.log(`✅ EXIF coordinates extracted successfully for ${mediaDoc.filename || 'image'}:`, {
-      latitude: locationInfo.latitude,
-      longitude: locationInfo.longitude,
-      locationName: locationInfo.locationName || "No location name available",
-    });
+    console.log(
+      `✅ EXIF coordinates extracted successfully for ${mediaDoc.filename || "image"}:`,
+      {
+        latitude: locationInfo.latitude,
+        longitude: locationInfo.longitude,
+        locationName: locationInfo.locationName || "No location name available",
+      },
+    );
   } else {
-    console.log(`❌ No EXIF coordinates found for ${mediaDoc.filename || 'image'}`);
+    console.log(
+      `❌ No EXIF coordinates found for ${mediaDoc.filename || "image"}`,
+    );
   }
 
   // Convert buffer to data URL for OpenAI
@@ -120,7 +128,7 @@ export async function describeImage(
  */
 async function getImageBuffer(
   mediaDoc: any,
-  authToken: string
+  authToken: string,
 ): Promise<Buffer> {
   // Get the URL from the media document
   const urlFromDoc: string | undefined = mediaDoc.url;
@@ -146,7 +154,7 @@ async function getImageBuffer(
 
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`
+      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`,
     );
   }
 
@@ -167,7 +175,7 @@ async function getImageBuffer(
  */
 async function getImageDataURL(
   mediaDoc: any,
-  authToken: string
+  authToken: string,
 ): Promise<string> {
   const inputBuffer = await getImageBuffer(mediaDoc, authToken);
 

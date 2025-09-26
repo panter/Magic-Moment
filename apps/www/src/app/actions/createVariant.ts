@@ -37,7 +37,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
   // Log the imageOriginal structure to understand what we're dealing with
   console.log(
     "Original image structure:",
-    JSON.stringify(design.imageOriginal, null, 2)
+    JSON.stringify(design.imageOriginal, null, 2),
   );
 
   // Initialize OpenAI
@@ -59,7 +59,10 @@ export async function createVariant(designId: string, customPrompt?: string) {
 
   if ((needsDescription || needsGeoData) && design.imageOriginal) {
     // Analyze the image
-    const analysisResult = await describeImage(design.imageOriginal, token.value);
+    const analysisResult = await describeImage(
+      design.imageOriginal,
+      token.value,
+    );
 
     if (needsDescription) {
       description = analysisResult.description;
@@ -99,8 +102,10 @@ export async function createVariant(designId: string, customPrompt?: string) {
   let variantStyle = "Magic Edition";
   if (customPrompt) {
     // Extract a short style name from the custom prompt
-    const words = customPrompt.split(' ').slice(0, 3);
-    variantStyle = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const words = customPrompt.split(" ").slice(0, 3);
+    variantStyle = words
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   } else {
     try {
       const nameResponse = await openai.chat.completions.create({
@@ -132,9 +137,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
 
   if (customPrompt) {
     // Use the custom prompt provided by the user
-    postcardPrompt = `Create a postcard variant of: "${
-      design.name
-    }"
+    postcardPrompt = `Create a postcard variant of: "${design.name}"
 
     Original image description: ${description}
 
@@ -148,9 +151,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
     Keep the essence of the original while applying the requested style transformation.`;
   } else {
     // Use the default creative prompt
-    postcardPrompt = `Create a postcard variant of: "${
-      design.name
-    }"
+    postcardPrompt = `Create a postcard variant of: "${design.name}"
 
     Original image description: ${description}
 
@@ -227,7 +228,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
     console.error("Error generating variant - full details:", error);
     console.error(
       "Error message:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw new Error("Failed to generate variant image");
   }

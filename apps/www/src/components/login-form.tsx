@@ -1,38 +1,38 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { login, register } from '@/app/actions/auth'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { login, register } from "@/app/actions/auth";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
       const result = isLogin
         ? await login(email, password)
-        : await register(email, password)
+        : await register(email, password);
 
       if (result.success) {
-        router.refresh()
+        router.refresh();
       } else {
-        setError(result.error || 'An error occurred')
+        setError(result.error || "An error occurred");
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError("An unexpected error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -43,7 +43,10 @@ export default function LoginForm() {
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Email
         </label>
         <input
@@ -58,7 +61,10 @@ export default function LoginForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Password
         </label>
         <input
@@ -97,22 +103,23 @@ export default function LoginForm() {
             </svg>
             Processing...
           </span>
+        ) : isLogin ? (
+          "Sign In"
         ) : (
-          isLogin ? 'Sign In' : 'Sign Up'
+          "Sign Up"
         )}
       </button>
 
       <div className="text-center text-sm text-gray-600">
-        {isLogin ? "Don't have an account?" : "Already have an account?"}
-        {' '}
+        {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
         <button
           type="button"
           onClick={() => setIsLogin(!isLogin)}
           className="text-[#e6b800] hover:text-[#cc9f00] font-medium"
         >
-          {isLogin ? 'Sign Up' : 'Sign In'}
+          {isLogin ? "Sign Up" : "Sign In"}
         </button>
       </div>
     </form>
-  )
+  );
 }

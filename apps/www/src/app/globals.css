@@ -35,12 +35,12 @@ body {
 }
 
 @font-face {
-  font-family: 'Handwriting';
+  font-family: "Handwriting";
   font-style: normal;
   font-weight: 400;
-  src: local('Courier New'), local('Courier'), local('monospace');
+  src: local("Courier New"), local("Courier"), local("monospace");
 }
 
 .font-handwriting {
-  font-family: 'Handwriting', cursive;
+  font-family: "Handwriting", cursive;
 }

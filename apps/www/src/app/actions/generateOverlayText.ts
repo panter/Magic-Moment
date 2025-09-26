@@ -17,10 +17,14 @@ export async function generateOverlayText({
   if (!apiKey) {
     // Fallback to simple text if OpenAI is not configured
     if (locationName) {
-      const cityName = locationName.split(',')[0].trim();
+      const cityName = locationName.split(",")[0].trim();
       return cityName;
     }
-    return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
   }
 
   const openai = new OpenAI({ apiKey });
@@ -38,7 +42,7 @@ export async function generateOverlayText({
       contextParts.push(`The postcard message says: "${message}"`);
     }
 
-    const context = contextParts.join(' ');
+    const context = contextParts.join(" ");
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -89,7 +93,7 @@ Return ONLY the text overlay itself, without any quotes or formatting. Do not wr
 
     // Clean up the response
     // Remove surrounding quotes if present
-    generatedText = generatedText.replace(/^["']|["']$/g, '');
+    generatedText = generatedText.replace(/^["']|["']$/g, "");
     // Remove any escaped quotes
     generatedText = generatedText.replace(/\\"/g, '"');
     generatedText = generatedText.replace(/\\'/g, "'");
@@ -100,9 +104,13 @@ Return ONLY the text overlay itself, without any quotes or formatting. Do not wr
 
     // Fallback to simple text
     if (locationName) {
-      const cityName = locationName.split(',')[0].trim();
+      const cityName = locationName.split(",")[0].trim();
       return cityName;
     }
-    return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
   }
 }

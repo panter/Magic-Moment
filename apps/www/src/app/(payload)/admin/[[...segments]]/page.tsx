@@ -1,18 +1,25 @@
-import config from '@payload-config'
-import { RootPage } from '@payloadcms/next/views'
-import { importMap } from '../importMap'
+import config from "@payload-config";
+import { RootPage } from "@payloadcms/next/views";
+import { importMap } from "../importMap";
 
 type Args = {
   params: Promise<{
-    segments: string[]
-  }>
+    segments: string[];
+  }>;
   searchParams: Promise<{
-    [key: string]: string | string[]
-  }>
-}
+    [key: string]: string | string[];
+  }>;
+};
 
 const Page = ({ params, searchParams }: Args) => {
-  return <RootPage config={config} params={params} searchParams={searchParams} importMap={importMap} />
-}
+  return (
+    <RootPage
+      config={config}
+      params={params}
+      searchParams={searchParams}
+      importMap={importMap}
+    />
+  );
+};
 
-export default Page
+export default Page;

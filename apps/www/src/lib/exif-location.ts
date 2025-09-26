@@ -11,7 +11,7 @@ interface LocationInfo {
  * Extract GPS coordinates from image buffer
  */
 export async function extractGPSFromImage(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
 ): Promise<{ latitude: number | null; longitude: number | null }> {
   try {
     const exifData = await exifr.parse(imageBuffer, {
@@ -38,7 +38,7 @@ export async function extractGPSFromImage(
  */
 export async function geocodeCoordinates(
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<{ locationName: string | null; fullLocationData?: any }> {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`;
@@ -98,7 +98,7 @@ export async function geocodeCoordinates(
  * Returns GPS coordinates and location name if available
  */
 export async function extractLocationFromImage(
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
 ): Promise<LocationInfo> {
   // Extract GPS coordinates from EXIF
   const { latitude, longitude } = await extractGPSFromImage(imageBuffer);
@@ -114,7 +114,7 @@ export async function extractLocationFromImage(
   // Geocode the coordinates to get location name
   const { locationName, fullLocationData } = await geocodeCoordinates(
     latitude,
-    longitude
+    longitude,
   );
 
   return {
