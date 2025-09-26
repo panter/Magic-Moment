@@ -24,7 +24,7 @@ export const Textarea = forwardRef(
         <textarea
           ref={ref}
           id={id}
-          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ffcc02] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ffcc02] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed placeholder-gray-400 ${
             error ? "border-red-500 focus:ring-red-500" : ""
           } ${className}`}
           {...props}

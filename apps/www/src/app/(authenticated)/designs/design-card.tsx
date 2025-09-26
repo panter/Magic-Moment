@@ -1,14 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { deleteDesign, createVariant } from "@/app/actions/designs";
-import { useRouter } from "next/navigation";
+import { deleteDesign } from "@/app/actions/designs";
 import { Button } from "@repo/ui";
-import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function DesignCard({ design }: { design: any }) {
   const router = useRouter();
-  const [creatingVariant, setCreatingVariant] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this design?")) return;
@@ -18,18 +16,6 @@ export default function DesignCard({ design }: { design: any }) {
       router.refresh();
     } catch (error) {
       console.error("Failed to delete design:", error);
-    }
-  };
-
-  const handleCreateVariant = async () => {
-    setCreatingVariant(true);
-    try {
-      await createVariant(design.id);
-      // Navigate to the edit page to see the new variant
-      router.push(`/designs/${design.id}/edit`);
-    } catch (error) {
-      console.error("Failed to create variant:", error);
-      setCreatingVariant(false);
     }
   };
 
@@ -94,39 +80,6 @@ export default function DesignCard({ design }: { design: any }) {
             {design.category}
           </span>
           <span>{new Date(design.createdAt).toLocaleDateString()}</span>
-        </div>
-
-        {/* Magic Button */}
-        <div className="mb-3">
-          <Button
-            onClick={handleCreateVariant}
-            variant="primary"
-            size="sm"
-            className="w-full"
-            loading={creatingVariant}
-            disabled={creatingVariant}
-          >
-            {creatingVariant ? (
-              "Creating Magic Variant..."
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4 mr-2 inline"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                  />
-                </svg>
-                Create Magic Variant
-              </>
-            )}
-          </Button>
         </div>
 
         <div className="flex gap-2">
