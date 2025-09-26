@@ -1,3 +1,5 @@
+"use server";
+
 import OpenAI from "openai";
 import sharp from "sharp";
 import { getPayload } from "payload";
@@ -27,7 +29,7 @@ interface ImageAnalysisResult {
  */
 export async function describeImage(
   mediaRef: string | any,
-  authToken: string,
+  authToken: string
 ): Promise<ImageAnalysisResult> {
   // Initialize OpenAI
   const apiKey = process.env.OPENAI_API_KEY;
@@ -62,16 +64,18 @@ export async function describeImage(
   // Log EXIF extraction results
   if (locationInfo.latitude && locationInfo.longitude) {
     console.log(
-      `✅ EXIF coordinates extracted successfully for ${mediaDoc.filename || "image"}:`,
+      `✅ EXIF coordinates extracted successfully for ${
+        mediaDoc.filename || "image"
+      }:`,
       {
         latitude: locationInfo.latitude,
         longitude: locationInfo.longitude,
         locationName: locationInfo.locationName || "No location name available",
-      },
+      }
     );
   } else {
     console.log(
-      `❌ No EXIF coordinates found for ${mediaDoc.filename || "image"}`,
+      `❌ No EXIF coordinates found for ${mediaDoc.filename || "image"}`
     );
   }
 
@@ -128,7 +132,7 @@ export async function describeImage(
  */
 async function getImageBuffer(
   mediaDoc: any,
-  authToken: string,
+  authToken: string
 ): Promise<Buffer> {
   // Get the URL from the media document
   const urlFromDoc: string | undefined = mediaDoc.url;
@@ -154,7 +158,7 @@ async function getImageBuffer(
 
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`,
+      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`
     );
   }
 
@@ -165,24 +169,4 @@ async function getImageBuffer(
   const inputBuffer = Buffer.from(arrayBuf);
 
   return inputBuffer;
-}
-
-/**
- * Fetches an image from Payload media and converts it to a base64 data URL
- * @param mediaDoc - The resolved media document
- * @param authToken - The payload authentication token value
- * @returns A base64 data URL of the image in JPEG format
- */
-async function getImageDataURL(
-  mediaDoc: any,
-  authToken: string,
-): Promise<string> {
-  const inputBuffer = await getImageBuffer(mediaDoc, authToken);
-
-  // Always convert to JPEG to ensure compatibility with OpenAI Vision
-  console.log("Converting to JPEG for OpenAI Vision API");
-  const jpegBuffer = await sharp(inputBuffer).jpeg({ quality: 90 }).toBuffer();
-  const base64 = jpegBuffer.toString("base64");
-
-  return `data:image/jpeg;base64,${base64}`;
 }

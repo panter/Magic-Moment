@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  serverComponentsExternalPackages: ["sharp", "@img/sharp-linux-x64"],
   experimental: {
     serverActions: {
       bodySizeLimit: "100mb",
