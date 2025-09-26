@@ -15,13 +15,23 @@ export interface OverlayData {
 export interface CreateDesignInput {
   name: string;
   description?: string;
-  category: "holiday" | "birthday" | "thankyou" | "greeting" | "travel" | "custom";
+  category:
+    | "holiday"
+    | "birthday"
+    | "thankyou"
+    | "greeting"
+    | "travel"
+    | "custom";
   imageOriginal: string;
   frontImage?: string;
   backgroundColor?: string;
   textColor?: string;
   font?: "sans" | "serif" | "handwritten" | "decorative";
-  layout?: "full-image" | "split-horizontal" | "split-vertical" | "border-frame";
+  layout?:
+    | "full-image"
+    | "split-horizontal"
+    | "split-vertical"
+    | "border-frame";
   isPublic?: boolean;
   defaultMessage?: string;
   overlays?: OverlayData[];
@@ -34,16 +44,29 @@ export interface CreateDesignInput {
   // Browser location fallback (temporary, not stored)
   browserLatitude?: number;
   browserLongitude?: number;
+
+  // Video URL if the uploaded file was a video
+  videoUrl?: string;
 }
 
 export interface UpdateDesignInput {
   name?: string;
   description?: string;
-  category?: "holiday" | "birthday" | "thankyou" | "greeting" | "travel" | "custom";
+  category?:
+    | "holiday"
+    | "birthday"
+    | "thankyou"
+    | "greeting"
+    | "travel"
+    | "custom";
   backgroundColor?: string;
   textColor?: string;
   font?: "sans" | "serif" | "handwritten" | "decorative";
-  layout?: "full-image" | "split-horizontal" | "split-vertical" | "border-frame";
+  layout?:
+    | "full-image"
+    | "split-horizontal"
+    | "split-vertical"
+    | "border-frame";
   isPublic?: boolean;
   defaultMessage?: string;
   frontImage?: string;
@@ -53,4 +76,5 @@ export interface UpdateDesignInput {
   longitude?: number;
   locationName?: string;
   imageOriginal?: string;
+  videoUrl?: string;
 }

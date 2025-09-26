@@ -1,22 +1,22 @@
-import { buildConfig } from 'payload'
-import { postgresAdapter } from '@payloadcms/db-postgres'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { PostcardDesign } from './src/collections/PostcardDesign'
+import { buildConfig } from "payload";
+import { postgresAdapter } from "@payloadcms/db-postgres";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
+import path from "path";
+import { fileURLToPath } from "url";
+import { PostcardDesign } from "./src/collections/PostcardDesign";
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 export default buildConfig({
   admin: {
-    user: 'users',
+    user: "users",
   },
   collections: [
     PostcardDesign,
     {
-      slug: 'users',
+      slug: "users",
       auth: true,
       access: {
         create: () => true,
@@ -26,139 +26,142 @@ export default buildConfig({
       },
       fields: [
         {
-          name: 'role',
-          type: 'select',
+          name: "role",
+          type: "select",
           options: [
-            { label: 'Admin', value: 'admin' },
-            { label: 'User', value: 'user' },
+            { label: "Admin", value: "admin" },
+            { label: "User", value: "user" },
           ],
-          defaultValue: 'user',
+          defaultValue: "user",
           required: true,
         },
       ],
     },
     {
-      slug: 'postcards',
+      slug: "postcards",
       admin: {
-        useAsTitle: 'title',
+        useAsTitle: "title",
+      },
+      access: {
+        read: () => true,
       },
       fields: [
         {
-          name: 'title',
-          type: 'text',
+          name: "title",
+          type: "text",
           required: true,
         },
         {
-          name: 'message',
-          type: 'richText',
+          name: "message",
+          type: "richText",
           editor: lexicalEditor({}),
         },
         {
-          name: 'recipientName',
-          type: 'text',
+          name: "recipientName",
+          type: "text",
           required: true,
         },
         {
-          name: 'recipientAddress',
-          type: 'textarea',
+          name: "recipientAddress",
+          type: "textarea",
           required: true,
         },
         {
-          name: 'senderName',
-          type: 'text',
+          name: "senderName",
+          type: "text",
           required: true,
         },
         {
-          name: 'image',
-          type: 'upload',
-          relationTo: 'media',
+          name: "image",
+          type: "upload",
+          relationTo: "media",
           required: true,
         },
         {
-          name: 'status',
-          type: 'select',
+          name: "status",
+          type: "select",
           options: [
-            { label: 'Draft', value: 'draft' },
-            { label: 'Sent', value: 'sent' },
-            { label: 'Delivered', value: 'delivered' },
+            { label: "Draft", value: "draft" },
+            { label: "Sent", value: "sent" },
+            { label: "Delivered", value: "delivered" },
           ],
-          defaultValue: 'draft',
+          defaultValue: "draft",
         },
         {
-          name: 'aiGenerated',
-          type: 'checkbox',
+          name: "aiGenerated",
+          type: "checkbox",
           defaultValue: false,
         },
         {
-          name: 'createdBy',
-          type: 'relationship',
-          relationTo: 'users',
+          name: "createdBy",
+          type: "relationship",
+          relationTo: "users",
           required: true,
         },
       ],
     },
     {
-      slug: 'media',
+      slug: "media",
       upload: true,
       fields: [
         {
-          name: 'alt',
-          type: 'text',
+          name: "alt",
+          type: "text",
         },
       ],
     },
     {
-      slug: 'templates',
+      slug: "templates",
       admin: {
-        useAsTitle: 'name',
+        useAsTitle: "name",
       },
       fields: [
         {
-          name: 'name',
-          type: 'text',
+          name: "name",
+          type: "text",
           required: true,
         },
         {
-          name: 'description',
-          type: 'textarea',
+          name: "description",
+          type: "textarea",
         },
         {
-          name: 'category',
-          type: 'select',
+          name: "category",
+          type: "select",
           options: [
-            { label: 'Holiday', value: 'holiday' },
-            { label: 'Birthday', value: 'birthday' },
-            { label: 'Thank You', value: 'thankyou' },
-            { label: 'Greeting', value: 'greeting' },
-            { label: 'Travel', value: 'travel' },
+            { label: "Holiday", value: "holiday" },
+            { label: "Birthday", value: "birthday" },
+            { label: "Thank You", value: "thankyou" },
+            { label: "Greeting", value: "greeting" },
+            { label: "Travel", value: "travel" },
           ],
         },
         {
-          name: 'templateImage',
-          type: 'upload',
-          relationTo: 'media',
+          name: "templateImage",
+          type: "upload",
+          relationTo: "media",
         },
         {
-          name: 'defaultMessage',
-          type: 'richText',
+          name: "defaultMessage",
+          type: "richText",
           editor: lexicalEditor({}),
         },
         {
-          name: 'isActive',
-          type: 'checkbox',
+          name: "isActive",
+          type: "checkbox",
           defaultValue: true,
         },
       ],
     },
   ],
   editor: lexicalEditor({}),
-  secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',
+  secret: process.env.PAYLOAD_SECRET || "YOUR_SECRET_HERE",
   typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
+    outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: process.env.DATABASE_URI || "",
     },
   }),
   plugins: [
@@ -167,7 +170,7 @@ export default buildConfig({
       collections: {
         media: true,
       },
-      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+      token: process.env.BLOB_READ_WRITE_TOKEN || "",
     }),
   ],
-})
+});

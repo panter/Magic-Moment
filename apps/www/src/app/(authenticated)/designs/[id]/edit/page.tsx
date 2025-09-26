@@ -28,7 +28,9 @@ export default function EditDesignPage() {
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
   const [imageOriginalId, setImageOriginalId] = useState<string | null>(null);
   const [imageOriginalUrl, setImageOriginalUrl] = useState<string | null>(null);
@@ -41,13 +43,17 @@ export default function EditDesignPage() {
   );
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [locationName, setLocationName] = useState<string | null>(null);
-  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
   const [generatingMessage, setGeneratingMessage] = useState(false);
   const [generatingVariant, setGeneratingVariant] = useState(false);
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [variantPrompt, setVariantPrompt] = useState("");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [autoSaving, setAutoSaving] = useState(false);
   const router = useRouter();
@@ -68,9 +74,9 @@ export default function EditDesignPage() {
         try {
           setAutoSaving(true);
           await updateDesign(id, { overlays: newOverlays });
-          console.log('Overlays auto-saved');
+          console.log("Overlays auto-saved");
         } catch (err) {
-          console.error('Failed to auto-save overlays:', err);
+          console.error("Failed to auto-save overlays:", err);
         } finally {
           setAutoSaving(false);
         }
@@ -101,6 +107,8 @@ export default function EditDesignPage() {
         setMessage(design.defaultMessage || "");
         setCurrentImageId(design.frontImage);
         setImageOriginalId(design.imageOriginal);
+        setVideoUrl(design.videoUrl || null);
+        setCurrentVideoId(design.videoId || null);
 
         // Load overlays
         if (design.overlays) {
@@ -161,12 +169,15 @@ export default function EditDesignPage() {
       await updateDesign(id, {
         defaultMessage: result.message,
         // Also save description if it was generated
-        ...(result.description && !description ? { description: result.description } : {})
+        ...(result.description && !description
+          ? { description: result.description }
+          : {}),
       });
+
+      setMessage(result.message);
 
       // Refresh the page to show the updated data
       router.refresh();
-      window.location.reload();
     } catch (err) {
       console.error("Error generating message:", err);
       setError("Failed to generate message");
@@ -218,12 +229,36 @@ export default function EditDesignPage() {
     "Make it look like a retro travel poster",
   ];
 
-  const handleImageChange = (file: File | null) => {
+  const handleImageChange = async (file: File | null) => {
     setImageFile(file);
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         setImagePreview(reader.result as string);
+        // Auto-save the image immediately
+        try {
+          setAutoSaving(true);
+          const formData = new FormData();
+          formData.append("file", file);
+          const uploadedImage = await uploadImage(formData);
+          const imageId = uploadedImage.id as string;
+
+          // Update both imageOriginal and frontImage
+          await updateDesign(id, {
+            imageOriginal: imageId,
+            frontImage: imageId,
+          });
+
+          setCurrentImageId(imageId);
+          setImageOriginalId(imageId);
+          setImageOriginalUrl(reader.result as string);
+          setImageFile(null); // Clear the file since it's been uploaded
+        } catch (err) {
+          console.error("Failed to upload image:", err);
+          setError("Failed to upload image");
+        } finally {
+          setAutoSaving(false);
+        }
       };
       reader.readAsDataURL(file);
       // When a new file is uploaded, reset selection
@@ -235,6 +270,42 @@ export default function EditDesignPage() {
         // Keep the existing preview
       } else {
         setImagePreview(null);
+      }
+    }
+  };
+
+  const handleVideoChange = async (file: File | null) => {
+    setVideoFile(file);
+    if (file) {
+      // Create preview URL for video
+      const url = URL.createObjectURL(file);
+      setVideoPreview(url);
+
+      // Auto-save the video immediately
+      try {
+        setAutoSaving(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadedVideo = await uploadImage(formData);
+
+        // Update video URL in design
+        await updateDesign(id, {
+          videoUrl: uploadedVideo.url,
+        });
+
+        setVideoUrl(uploadedVideo.url);
+        setVideoFile(null); // Clear the file since it's been uploaded
+      } catch (err) {
+        console.error("Failed to upload video:", err);
+        setError("Failed to upload video");
+      } finally {
+        setAutoSaving(false);
+      }
+    } else {
+      setVideoPreview(null);
+      if (!videoUrl) {
+        // If there's no existing video, clear the preview
+        setVideoUrl(null);
       }
     }
   };
@@ -274,34 +345,14 @@ export default function EditDesignPage() {
     setError("");
 
     try {
-      let imageId = currentImageId;
-
-      // If a new image was selected, upload it
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-        const uploadedImage = await uploadImage(formData);
-        imageId = uploadedImage.id as string;
-
-        // Update both imageOriginal and frontImage for new uploads
-        await updateDesign(id, {
-          name,
-          description,
-          defaultMessage: message,
-          imageOriginal: imageId,
-          frontImage: imageId,
-          overlays,
-        });
-      } else {
-        // Update with the selected image
-        await updateDesign(id, {
-          name,
-          description,
-          defaultMessage: message,
-          frontImage: imageId || "",
-          overlays,
-        });
-      }
+      // Since we're auto-saving images/videos, just save the other fields
+      await updateDesign(id, {
+        name,
+        description,
+        defaultMessage: message,
+        frontImage: currentImageId || "",
+        overlays,
+      });
 
       router.push("/designs");
       router.refresh();
@@ -335,9 +386,7 @@ export default function EditDesignPage() {
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Edit Design
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Design</h1>
           <a
             href={`/designs/${id}`}
             target="_blank"
@@ -535,11 +584,32 @@ export default function EditDesignPage() {
                   value={imageFile}
                   preview={imageFile ? imagePreview : null}
                   onChange={handleImageChange}
-                  disabled={loading}
+                  acceptVideo={false}
+                  maxSize="100MB"
+                  disabled={loading || autoSaving}
                 />
                 {imageFile && (
                   <p className="text-sm text-amber-600 -mt-2">
                     New image will replace the current selection
+                  </p>
+                )}
+              </div>
+
+              {/* Video Upload Section */}
+              <div className="space-y-2">
+                <ImageUpload
+                  label="Upload Video (optional)"
+                  value={videoFile}
+                  preview={null}
+                  onChange={handleVideoChange}
+                  acceptVideo={true}
+                  acceptImage={false}
+                  maxSize="100MB"
+                  disabled={loading || autoSaving}
+                />
+                {videoFile && (
+                  <p className="text-sm text-amber-600 -mt-2">
+                    Video is being uploaded...
                   </p>
                 )}
               </div>
@@ -605,6 +675,7 @@ export default function EditDesignPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               Preview
             </h2>
+
             <PostcardPreview
               frontImage={imagePreview}
               message={message || "Your message will appear here..."}
@@ -614,7 +685,7 @@ export default function EditDesignPage() {
               overlays={overlays}
               selectedOverlayId={selectedOverlayId}
               onOverlayUpdate={(overlayId, updates) => {
-                const updatedOverlays = overlays.map(overlay =>
+                const updatedOverlays = overlays.map((overlay) =>
                   overlay.id === overlayId
                     ? { ...overlay, ...updates }
                     : overlay
@@ -623,6 +694,25 @@ export default function EditDesignPage() {
               }}
               onOverlaySelect={setSelectedOverlayId}
             />
+
+            {/* Video Preview if video exists */}
+            {(videoPreview || videoUrl) && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  Video Preview
+                </h3>
+                <div className="relative rounded-lg overflow-hidden shadow-lg">
+                  <video
+                    src={videoPreview || videoUrl}
+                    controls
+                    className="w-full"
+                    style={{ maxHeight: "400px" }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

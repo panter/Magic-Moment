@@ -73,7 +73,7 @@ export function useGeolocation(requestOnMount = false): GeolocationData & {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      }
+      },
     );
   };
 

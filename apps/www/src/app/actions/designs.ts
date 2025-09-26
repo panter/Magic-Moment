@@ -69,8 +69,10 @@ export async function createDesign(data: CreateDesignInput) {
     hasLongitude: !!data.longitude,
     hasBrowserLatitude: !!data.browserLatitude,
     hasBrowserLongitude: !!data.browserLongitude,
-    browserCoords: data.browserLatitude && data.browserLongitude ?
-      { lat: data.browserLatitude, lng: data.browserLongitude } : null
+    browserCoords:
+      data.browserLatitude && data.browserLongitude
+        ? { lat: data.browserLatitude, lng: data.browserLongitude }
+        : null,
   });
 
   // STEP 1: Set coordinates FIRST (highest priority)
@@ -95,13 +97,22 @@ export async function createDesign(data: CreateDesignInput) {
     // Try to get location name for browser coordinates
     try {
       const { geocodeCoordinates } = await import("@/lib/exif-location");
-      const locationResult = await geocodeCoordinates(data.browserLatitude, data.browserLongitude);
+      const locationResult = await geocodeCoordinates(
+        data.browserLatitude,
+        data.browserLongitude,
+      );
       if (locationResult.locationName) {
         finalData.locationName = locationResult.locationName;
-        console.log("Got location name for browser coordinates:", locationResult.locationName);
+        console.log(
+          "Got location name for browser coordinates:",
+          locationResult.locationName,
+        );
       }
     } catch (err) {
-      console.error("Error getting location name for browser coordinates:", err);
+      console.error(
+        "Error getting location name for browser coordinates:",
+        err,
+      );
     }
   }
 
@@ -113,7 +124,10 @@ export async function createDesign(data: CreateDesignInput) {
 
       if (needsDescription || stillNeedsGeoData) {
         console.log("Analyzing image", { needsDescription, stillNeedsGeoData });
-        const analysisResult = await describeImage(finalData.imageOriginal, token.value);
+        const analysisResult = await describeImage(
+          finalData.imageOriginal,
+          token.value,
+        );
 
         // Use description if not provided
         if (needsDescription && analysisResult.description) {
@@ -123,18 +137,27 @@ export async function createDesign(data: CreateDesignInput) {
 
         // Only use EXIF geo data if we don't have any coordinates yet (as fallback)
         if (stillNeedsGeoData && analysisResult.geoData) {
-          if (analysisResult.geoData.latitude && analysisResult.geoData.longitude) {
+          if (
+            analysisResult.geoData.latitude &&
+            analysisResult.geoData.longitude
+          ) {
             finalData.latitude = analysisResult.geoData.latitude;
             finalData.longitude = analysisResult.geoData.longitude;
             if (analysisResult.geoData.locationName) {
               finalData.locationName = analysisResult.geoData.locationName;
             }
-            console.log("✅ No browser location, using EXIF geo data as fallback:", analysisResult.geoData);
+            console.log(
+              "✅ No browser location, using EXIF geo data as fallback:",
+              analysisResult.geoData,
+            );
           }
         }
       }
     } catch (error) {
-      console.error("Error analyzing image (continuing without description):", error);
+      console.error(
+        "Error analyzing image (continuing without description):",
+        error,
+      );
       // Continue - coordinates from browser are already set if available
     }
   }
@@ -250,7 +273,7 @@ export async function getDesign(id: string) {
       .map((variant: any) => ({
         id: variant.id,
         url: variant.url,
-        alt: variant.alt || "Variant image"
+        alt: variant.alt || "Variant image",
       }));
   }
 
@@ -269,7 +292,7 @@ export async function generatePostcardMessage(
   designId: string,
   currentMessage?: string,
   imageId?: string,
-  retryCount = 0
+  retryCount = 0,
 ) {
   const payload = await getPayload({ config: configPromise });
   const token = (await cookies()).get("payload-token");
@@ -358,7 +381,7 @@ export async function generatePostcardMessage(
          Generate an improved, creative postcard message that builds on the current message.
          IMPORTANT: Keep it under ${MESSAGE_CHAR_LIMIT} characters (including spaces and punctuation).
          Make it personal, warm, and natural.`
-      : `You have a postcard with this image: "${description || 'a beautiful scene'}".
+      : `You have a postcard with this image: "${description || "a beautiful scene"}".
          Generate a creative, warm postcard message that relates to the image.
          IMPORTANT: Keep it under ${MESSAGE_CHAR_LIMIT} characters (including spaces and punctuation).
          Make it personal and heartfelt, as if written to a dear friend.`;
@@ -368,12 +391,12 @@ export async function generatePostcardMessage(
       messages: [
         {
           role: "system",
-          content: `You are a creative writer helping to compose heartfelt postcard messages. Write in first person, as if the sender is writing to someone they care about. STRICT LIMIT: ${MESSAGE_CHAR_LIMIT} characters maximum. Be concise but meaningful.`
+          content: `You are a creative writer helping to compose heartfelt postcard messages. Write in first person, as if the sender is writing to someone they care about. STRICT LIMIT: ${MESSAGE_CHAR_LIMIT} characters maximum. Be concise but meaningful.`,
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       max_tokens: 100,
       temperature: 0.8,
@@ -387,16 +410,28 @@ export async function generatePostcardMessage(
 
     // Check if message is within limit, retry if too long
     if (generatedMessage.length > MESSAGE_CHAR_LIMIT && retryCount < 3) {
-      console.log(`Message too long (${generatedMessage.length} chars), retrying...`);
-      return generatePostcardMessage(designId, currentMessage, imageId, retryCount + 1);
+      console.log(
+        `Message too long (${generatedMessage.length} chars), retrying...`,
+      );
+      return generatePostcardMessage(
+        designId,
+        currentMessage,
+        imageId,
+        retryCount + 1,
+      );
     }
 
     // If still too long after retries, truncate
-    const finalMessage = generatedMessage.length > MESSAGE_CHAR_LIMIT
-      ? generatedMessage.substring(0, MESSAGE_CHAR_LIMIT - 3) + "..."
-      : generatedMessage;
+    const finalMessage =
+      generatedMessage.length > MESSAGE_CHAR_LIMIT
+        ? generatedMessage.substring(0, MESSAGE_CHAR_LIMIT - 3) + "..."
+        : generatedMessage;
 
-    return { message: finalMessage, description, charCount: finalMessage.length };
+    return {
+      message: finalMessage,
+      description,
+      charCount: finalMessage.length,
+    };
   } catch (error) {
     console.error("Error generating postcard message:", error);
     throw new Error("Failed to generate message");

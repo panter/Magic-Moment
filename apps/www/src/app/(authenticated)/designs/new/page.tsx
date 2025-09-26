@@ -11,6 +11,7 @@ import type { CreateDesignInput } from "@/app/actions/types";
 export default function NewDesignPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -21,15 +22,30 @@ export default function NewDesignPage() {
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Check if it's a video file
+      if (file.type.startsWith("video/")) {
+        // Create a preview URL for the video
+        const videoUrl = URL.createObjectURL(file);
+        setVideoPreview(videoUrl);
+        setImagePreview(null);
+      } else {
+        // It's an image file
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+        setVideoPreview(null);
+      }
 
       // Automatically request location when image is uploaded
       // Only if we don't have location yet and haven't asked before
-      if (!latitude && !longitude && !locationRequested && permissionStatus !== "denied") {
+      if (
+        !latitude &&
+        !longitude &&
+        !locationRequested &&
+        permissionStatus !== "denied"
+      ) {
         console.log("Auto-requesting location after image upload");
         // Small delay to ensure UI is ready
         setTimeout(() => {
@@ -39,6 +55,10 @@ export default function NewDesignPage() {
       }
     } else {
       setImagePreview(null);
+      if (videoPreview) {
+        URL.revokeObjectURL(videoPreview);
+      }
+      setVideoPreview(null);
     }
   };
 
@@ -53,7 +73,7 @@ export default function NewDesignPage() {
     setError("");
 
     try {
-      // Upload the image first
+      // Upload the image/video first
       const formData = new FormData();
       formData.append("file", imageFile);
       const uploadedImage = await uploadImage(formData);
@@ -77,6 +97,7 @@ export default function NewDesignPage() {
         font: "sans",
         layout: "full-image",
         isPublic: false,
+        ...(uploadedImage.videoUrl ? { videoUrl: uploadedImage.videoUrl } : {}),
       };
 
       // Include browser location if available (will be used as fallback if image has no EXIF)
@@ -119,12 +140,49 @@ export default function NewDesignPage() {
             {error && <ErrorMessage>{error}</ErrorMessage>}
 
             <ImageUpload
-              label="Upload Postcard Image"
+              label="Upload Postcard Image or Video"
               value={imageFile}
-              preview={imagePreview}
+              preview={videoPreview ? null : imagePreview}
               onChange={handleImageChange}
+              acceptVideo={true}
+              maxSize="100MB"
               disabled={loading}
             />
+
+            {/* Single Preview - Shows either video or image */}
+            {videoPreview && (
+              <div className="mb-4">
+                <div className="relative rounded-lg overflow-hidden shadow bg-black">
+                  <video
+                    src={videoPreview}
+                    controls
+                    className="w-full"
+                    style={{ maxHeight: "200px" }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                  <button
+                    type="button"
+                    onClick={() => handleImageChange(null)}
+                    className="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 transition"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {imageFile && (
               <div className="bg-gray-50 rounded-lg p-4">
@@ -136,13 +194,16 @@ export default function NewDesignPage() {
                     .replace(/\b\w/g, (l) => l.toUpperCase())}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Description will be generated automatically from the image
-                  content
+                  {imageFile.type.startsWith("video/")
+                    ? "Video uploaded successfully"
+                    : "Description will be generated automatically from the image content"}
                 </p>
                 {/* Location status */}
                 {latitude && longitude ? (
                   <p className="text-sm text-green-600 mt-2">
-                    ✅ Current location captured ({latitude.toFixed(4)}, {longitude.toFixed(4)}) - will be used if image has no GPS data
+                    ✅ Current location captured ({latitude.toFixed(4)},{" "}
+                    {longitude.toFixed(4)}) - will be used if image has no GPS
+                    data
                   </p>
                 ) : permissionStatus === "denied" ? (
                   <p className="text-sm text-amber-600 mt-2">
@@ -152,17 +213,19 @@ export default function NewDesignPage() {
                   <p className="text-sm text-blue-500 mt-2 animate-pulse">
                     ⏳ Getting your location...
                   </p>
-                ) : permissionStatus === "prompt" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      requestLocation();
-                      setLocationRequested(true);
-                    }}
-                    className="text-sm text-blue-600 hover:text-blue-800 mt-2 underline"
-                  >
-                    📍 Enable location for better geotagging
-                  </button>
+                ) : (
+                  permissionStatus === "prompt" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        requestLocation();
+                        setLocationRequested(true);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 mt-2 underline"
+                    >
+                      📍 Enable location for better geotagging
+                    </button>
+                  )
                 )}
               </div>
             )}
