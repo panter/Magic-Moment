@@ -6,3 +6,5 @@ export { ErrorMessage } from "./error-message";
 export { ImageUpload } from "./image-upload";
 export { PostcardPreview } from "./PostcardPreview";
 export { Modal } from "./modal";
+export { OverlayEditor } from "./OverlayEditor";
+export type { Overlay } from "./OverlayEditor";

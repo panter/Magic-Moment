@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   getDesign,
@@ -8,6 +8,7 @@ import {
   generatePostcardMessage,
   createVariant,
 } from "@/app/actions/designs";
+import { generateOverlayText } from "@/app/actions/generateOverlayText";
 import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
 import { uploadImage } from "@/app/actions/upload";
 import {
@@ -18,6 +19,8 @@ import {
   ImageUpload,
   PostcardPreview,
   Modal,
+  OverlayEditor,
+  type Overlay,
 } from "@repo/ui";
 
 export default function EditDesignPage() {
@@ -36,6 +39,9 @@ export default function EditDesignPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     null
   );
+  const [overlays, setOverlays] = useState<Overlay[]>([]);
+  const [locationName, setLocationName] = useState<string | null>(null);
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
   const [generatingMessage, setGeneratingMessage] = useState(false);
@@ -43,9 +49,44 @@ export default function EditDesignPage() {
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [variantPrompt, setVariantPrompt] = useState("");
   const [error, setError] = useState("");
+  const [autoSaving, setAutoSaving] = useState(false);
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Debounced auto-save function for overlays
+  const debouncedAutoSave = useCallback(
+    async (newOverlays: Overlay[]) => {
+      // Clear existing timeout
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+
+      // Set new timeout for auto-save
+      autoSaveTimeoutRef.current = setTimeout(async () => {
+        try {
+          setAutoSaving(true);
+          await updateDesign(id, { overlays: newOverlays });
+          console.log('Overlays auto-saved');
+        } catch (err) {
+          console.error('Failed to auto-save overlays:', err);
+        } finally {
+          setAutoSaving(false);
+        }
+      }, 1000); // Auto-save after 1 second of no changes
+    },
+    [id]
+  );
+
+  // Update overlays with auto-save
+  const updateOverlaysWithSave = useCallback(
+    (newOverlays: Overlay[]) => {
+      setOverlays(newOverlays);
+      debouncedAutoSave(newOverlays);
+    },
+    [debouncedAutoSave]
+  );
 
   useEffect(() => {
     async function loadDesign() {
@@ -60,6 +101,16 @@ export default function EditDesignPage() {
         setMessage(design.defaultMessage || "");
         setCurrentImageId(design.frontImage);
         setImageOriginalId(design.imageOriginal);
+
+        // Load overlays
+        if (design.overlays) {
+          setOverlays(design.overlays);
+        }
+
+        // Load location
+        if (design.locationName) {
+          setLocationName(design.locationName);
+        }
 
         // Store original image URL separately
         if (design.imageOriginalUrl) {
@@ -239,6 +290,7 @@ export default function EditDesignPage() {
           defaultMessage: message,
           imageOriginal: imageId,
           frontImage: imageId,
+          overlays,
         });
       } else {
         // Update with the selected image
@@ -247,6 +299,7 @@ export default function EditDesignPage() {
           description,
           defaultMessage: message,
           frontImage: imageId || "",
+          overlays,
         });
       }
 
@@ -327,7 +380,7 @@ export default function EditDesignPage() {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative">
           {/* Form Section */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -491,6 +544,25 @@ export default function EditDesignPage() {
                 )}
               </div>
 
+              {/* Overlay Editor - moved below image selection */}
+              <div className="relative">
+                <OverlayEditor
+                  overlays={overlays}
+                  onChange={updateOverlaysWithSave}
+                  locationName={locationName || undefined}
+                  description={description}
+                  message={message}
+                  selectedOverlayId={selectedOverlayId}
+                  onSelectOverlay={setSelectedOverlayId}
+                  onGenerateText={generateOverlayText}
+                />
+                {autoSaving && (
+                  <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full animate-pulse">
+                    Saving overlays...
+                  </div>
+                )}
+              </div>
+
               <Textarea
                 label="Description (optional)"
                 id="description"
@@ -528,8 +600,8 @@ export default function EditDesignPage() {
             </form>
           </div>
 
-          {/* Preview Section */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Preview Section - Sticky */}
+          <div className="lg:sticky lg:top-8 h-fit bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               Preview
             </h2>
@@ -539,6 +611,17 @@ export default function EditDesignPage() {
               recipientName="Jane Smith"
               recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
               designId={id}
+              overlays={overlays}
+              selectedOverlayId={selectedOverlayId}
+              onOverlayUpdate={(overlayId, updates) => {
+                const updatedOverlays = overlays.map(overlay =>
+                  overlay.id === overlayId
+                    ? { ...overlay, ...updates }
+                    : overlay
+                );
+                updateOverlaysWithSave(updatedOverlays);
+              }}
+              onOverlaySelect={setSelectedOverlayId}
             />
           </div>
         </div>
