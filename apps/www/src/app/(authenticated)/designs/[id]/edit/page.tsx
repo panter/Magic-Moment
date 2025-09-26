@@ -6,6 +6,7 @@ import {
   getDesign,
   updateDesign,
   generatePostcardMessage,
+  createVariant,
 } from "@/app/actions/designs";
 import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
 import { uploadImage } from "@/app/actions/upload";
@@ -25,9 +26,19 @@ export default function EditDesignPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
+  const [imageOriginalId, setImageOriginalId] = useState<string | null>(null);
+  const [imageOriginalUrl, setImageOriginalUrl] = useState<string | null>(null);
+  const [imageVariants, setImageVariants] = useState<any[]>([]);
+  const [selectedImageType, setSelectedImageType] = useState<
+    "original" | "variant"
+  >("original");
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
   const [generatingMessage, setGeneratingMessage] = useState(false);
+  const [generatingVariant, setGeneratingVariant] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const params = useParams();
@@ -43,13 +54,33 @@ export default function EditDesignPage() {
         }
         setName(design.name);
         setDescription(design.description || "");
-        setMessage(
-          design.defaultMessage ||
-            "Greetings from Switzerland!\n\nHaving a wonderful time exploring the beautiful Swiss Alps. The views are breathtaking and the chocolate is delicious!\n\nWish you were here!"
-        );
+        setMessage(design.defaultMessage || "");
         setCurrentImageId(design.frontImage);
-        // If design has an image, set it as preview
-        if (design.frontImageUrl) {
+        setImageOriginalId(design.imageOriginal);
+
+        // Store original image URL separately
+        if (design.imageOriginalUrl) {
+          setImageOriginalUrl(design.imageOriginalUrl);
+        }
+
+        // Load image variants
+        if (design.imageVariantsData && design.imageVariantsData.length > 0) {
+          setImageVariants(design.imageVariantsData);
+          // Check if current frontImage is a variant
+          const currentIsVariant = design.imageVariantsData.find(
+            (v: any) =>
+              v.id === design.frontImage?.id || v.id === design.frontImage
+          );
+          if (currentIsVariant) {
+            setSelectedImageType("variant");
+            setSelectedVariantId(currentIsVariant.id);
+            setImagePreview(currentIsVariant.url);
+          } else if (design.imageOriginalUrl) {
+            setImagePreview(design.imageOriginalUrl);
+          }
+        } else if (design.imageOriginalUrl) {
+          setImagePreview(design.imageOriginalUrl);
+        } else if (design.frontImageUrl) {
           setImagePreview(design.frontImageUrl);
         }
       } catch (err) {
@@ -80,6 +111,35 @@ export default function EditDesignPage() {
     }
   };
 
+  const handleGenerateVariant = async () => {
+    setGeneratingVariant(true);
+    setError("");
+    try {
+      const result = await createVariant(id);
+      // Reload the design to get the new variant
+      const updatedDesign = await getDesign(id);
+      if (updatedDesign.imageVariantsData) {
+        setImageVariants(updatedDesign.imageVariantsData);
+        // Select the new variant (it should be the last one)
+        const newVariant =
+          updatedDesign.imageVariantsData[
+            updatedDesign.imageVariantsData.length - 1
+          ];
+        if (newVariant) {
+          setSelectedImageType("variant");
+          setSelectedVariantId(newVariant.id);
+          setImagePreview(newVariant.url);
+          setCurrentImageId(newVariant.id);
+        }
+      }
+    } catch (err) {
+      console.error("Error generating variant:", err);
+      setError("Failed to generate variant");
+    } finally {
+      setGeneratingVariant(false);
+    }
+  };
+
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
     if (file) {
@@ -88,12 +148,39 @@ export default function EditDesignPage() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      // When a new file is uploaded, reset selection
+      setSelectedImageType("original");
+      setSelectedVariantId(null);
     } else {
       // If removing new image, restore original if it exists
       if (currentImageId) {
         // Keep the existing preview
       } else {
         setImagePreview(null);
+      }
+    }
+  };
+
+  const handleImageSelection = (
+    type: "original" | "variant",
+    variantId?: string
+  ) => {
+    setSelectedImageType(type);
+
+    if (type === "original") {
+      // Use stored original image URL
+      if (imageOriginalUrl) {
+        setImagePreview(imageOriginalUrl);
+        setCurrentImageId(imageOriginalId);
+      }
+      setSelectedVariantId(null);
+    } else if (type === "variant" && variantId) {
+      // Load variant image
+      const variant = imageVariants.find((v) => v.id === variantId);
+      if (variant) {
+        setImagePreview(variant.url);
+        setCurrentImageId(variant.id);
+        setSelectedVariantId(variantId);
       }
     }
   };
@@ -117,15 +204,24 @@ export default function EditDesignPage() {
         formData.append("file", imageFile);
         const uploadedImage = await uploadImage(formData);
         imageId = uploadedImage.id as string;
-      }
 
-      // Update the design
-      await updateDesign(id, {
-        name,
-        description,
-        defaultMessage: message,
-        frontImage: imageId || "",
-      });
+        // Update both imageOriginal and frontImage for new uploads
+        await updateDesign(id, {
+          name,
+          description,
+          defaultMessage: message,
+          imageOriginal: imageId,
+          frontImage: imageId,
+        });
+      } else {
+        // Update with the selected image
+        await updateDesign(id, {
+          name,
+          description,
+          defaultMessage: message,
+          frontImage: imageId || "",
+        });
+      }
 
       router.push("/designs");
       router.refresh();
@@ -233,18 +329,98 @@ export default function EditDesignPage() {
                 )}
               </div>
 
-              <ImageUpload
-                label="Postcard Image"
-                value={imageFile}
-                preview={imagePreview}
-                onChange={handleImageChange}
-                disabled={loading}
-              />
-              {!imageFile && currentImageId && (
-                <p className="text-sm text-gray-600 -mt-4">
-                  Current image will be kept if no new image is selected
-                </p>
-              )}
+              {/* Image Selection Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Postcard Image
+                  </label>
+                  <Button
+                    type="button"
+                    onClick={handleGenerateVariant}
+                    variant="primary"
+                    size="sm"
+                    disabled={loading || generatingVariant || !imageOriginalId}
+                    loading={generatingVariant}
+                  >
+                    {generatingVariant
+                      ? "Creating Magic..."
+                      : "🎨 Create Variant"}
+                  </Button>
+                </div>
+
+                {/* Image Variant Selector */}
+                {(imageVariants.length > 0 || imageOriginalId) &&
+                  !imageFile && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <p className="text-sm text-gray-600 mb-3">
+                        Select image version:
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Original Image */}
+                        {imageOriginalId && (
+                          <button
+                            type="button"
+                            onClick={() => handleImageSelection("original")}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedImageType === "original" &&
+                              !selectedVariantId
+                                ? "border-yellow-500 ring-2 ring-yellow-200"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            <img
+                              src={imageOriginalUrl || ""}
+                              alt="Original"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-1 px-2">
+                              Original
+                            </div>
+                          </button>
+                        )}
+
+                        {/* Variant Images */}
+                        {imageVariants.map((variant, index) => (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() =>
+                              handleImageSelection("variant", variant.id)
+                            }
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedVariantId === variant.id
+                                ? "border-yellow-500 ring-2 ring-yellow-200"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            <img
+                              src={variant.url}
+                              alt={variant.alt || `Variant ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-1 px-2">
+                              Variant {index + 1}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                <ImageUpload
+                  label="Upload New Image"
+                  value={imageFile}
+                  preview={imageFile ? imagePreview : null}
+                  onChange={handleImageChange}
+                  disabled={loading}
+                />
+                {imageFile && (
+                  <p className="text-sm text-amber-600 -mt-2">
+                    New image will replace the current selection
+                  </p>
+                )}
+              </div>
 
               <Textarea
                 label="Description (optional)"

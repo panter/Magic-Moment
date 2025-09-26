@@ -43,10 +43,31 @@ export const PostcardDesign: CollectionConfig = {
       type: 'textarea',
     },
     {
+      name: 'imageOriginal',
+      type: 'upload',
+      relationTo: 'media',
+      required: true,
+      admin: {
+        description: 'The original uploaded image',
+      },
+    },
+    {
       name: 'frontImage',
       type: 'upload',
       relationTo: 'media',
       required: true,
+      admin: {
+        description: 'The image that will be printed on the card',
+      },
+    },
+    {
+      name: 'imageVariants',
+      type: 'relationship',
+      relationTo: 'media',
+      hasMany: true,
+      admin: {
+        description: 'AI-generated variants of the original image',
+      },
     },
     {
       name: 'backgroundColor',
@@ -103,38 +124,6 @@ export const PostcardDesign: CollectionConfig = {
       defaultValue: false,
     },
     {
-      name: 'originalDesign',
-      type: 'relationship',
-      relationTo: 'postcard-designs',
-      admin: {
-        description: 'If this is a variant, reference to the original design',
-      },
-    },
-    {
-      name: 'variants',
-      type: 'relationship',
-      relationTo: 'postcard-designs',
-      hasMany: true,
-      admin: {
-        description: 'Variants created from this design',
-      },
-    },
-    {
-      name: 'isVariant',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        description: 'Whether this design is a variant of another design',
-      },
-    },
-    {
-      name: 'variantPrompt',
-      type: 'textarea',
-      admin: {
-        description: 'The prompt used to generate this variant (if applicable)',
-      },
-    },
-    {
       name: 'createdBy',
       type: 'relationship',
       relationTo: 'users',
@@ -159,6 +148,10 @@ export const PostcardDesign: CollectionConfig = {
       ({ req, operation, data }) => {
         if (operation === 'create' && req.user) {
           data.createdBy = req.user.id
+          // If no frontImage is specified, use the imageOriginal
+          if (!data.frontImage && data.imageOriginal) {
+            data.frontImage = data.imageOriginal
+          }
         }
         return data
       },

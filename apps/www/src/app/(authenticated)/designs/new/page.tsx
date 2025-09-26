@@ -54,6 +54,7 @@ export default function NewDesignPage() {
         name: automaticName,
         description: "", // Will be generated automatically
         category: "custom",
+        imageOriginal: uploadedImage.id,
         frontImage: uploadedImage.id,
         backgroundColor: "#ffffff",
         textColor: "#000000",

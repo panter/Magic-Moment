@@ -24,9 +24,9 @@ export default function DesignCard({ design }: { design: any }) {
   const handleCreateVariant = async () => {
     setCreatingVariant(true)
     try {
-      const variant = await createVariant(design.id)
-      // Navigate to the edit page for the new variant
-      router.push(`/designs/${variant.id}/edit`)
+      await createVariant(design.id)
+      // Navigate to the edit page to see the new variant
+      router.push(`/designs/${design.id}/edit`)
     } catch (error) {
       console.error('Failed to create variant:', error)
       setCreatingVariant(false)
@@ -62,21 +62,16 @@ export default function DesignCard({ design }: { design: any }) {
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <h3 className="font-semibold text-lg text-gray-900">{design.name}</h3>
-            {design.isVariant && (
+            {design.imageVariants && design.imageVariants.length > 0 && (
               <span className="inline-flex items-center text-xs text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full mt-1">
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                   <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                 </svg>
-                Variant
+                {design.imageVariants.length} variant{design.imageVariants.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
-          {design.variants && design.variants.length > 0 && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              {design.variants.length} variant{design.variants.length !== 1 ? 's' : ''}
-            </span>
-          )}
         </div>
         {design.description && (
           <p className="text-sm text-gray-600 mb-2 line-clamp-2">{design.description}</p>
