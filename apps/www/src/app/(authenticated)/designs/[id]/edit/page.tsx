@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getDesign, updateDesign } from "@/app/actions/designs";
 import { uploadImage } from "@/app/actions/upload";
-import { Button, Input, Textarea, ErrorMessage, ImageUpload } from "@repo/ui";
+import { Button, Input, Textarea, ErrorMessage, ImageUpload, PostcardPreview } from "@repo/ui";
 
 export default function EditDesignPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentImageId, setCurrentImageId] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export default function EditDesignPage() {
         }
         setName(design.name);
         setDescription(design.description || "");
+        setMessage(design.defaultMessage || "Greetings from Switzerland!\n\nHaving a wonderful time exploring the beautiful Swiss Alps. The views are breathtaking and the chocolate is delicious!\n\nWish you were here!");
         setCurrentImageId(design.frontImage);
         // If design has an image, set it as preview
         if (design.frontImageUrl) {
@@ -87,6 +89,7 @@ export default function EditDesignPage() {
       await updateDesign(id, {
         name,
         description,
+        defaultMessage: message,
         frontImage: imageId || "",
       });
 
@@ -120,11 +123,14 @@ export default function EditDesignPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Edit Design
-          </h1>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Edit Design
+        </h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -152,6 +158,18 @@ export default function EditDesignPage() {
               rows={3}
               disabled={loading}
               placeholder="A beautiful postcard design..."
+            />
+
+            <Textarea
+              label="Default Message"
+              id="message"
+              value={message}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setMessage(e.target.value)
+              }
+              rows={5}
+              disabled={loading}
+              placeholder="Write your postcard message here..."
             />
 
             <ImageUpload
@@ -190,6 +208,20 @@ export default function EditDesignPage() {
               </Button>
             </div>
           </form>
+          </div>
+
+          {/* Preview Section */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              Preview
+            </h2>
+            <PostcardPreview
+              frontImage={imagePreview}
+              message={message || "Your message will appear here..."}
+              recipientName="Jane Smith"
+              recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
+            />
+          </div>
         </div>
       </div>
     </div>

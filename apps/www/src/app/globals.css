@@ -25,3 +25,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+@font-face {
+  font-family: 'Handwriting';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Courier New'), local('Courier'), local('monospace');
+}
+
+.font-handwriting {
+  font-family: 'Handwriting', cursive;
+}

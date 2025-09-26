@@ -154,6 +154,104 @@ export async function getDesign(id: string) {
   };
 }
 
+export async function generatePostcardMessage(
+  designId: string,
+  currentMessage?: string,
+  imageId?: string
+) {
+  const payload = await getPayload({ config: configPromise });
+  const token = (await cookies()).get("payload-token");
+
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const headers = new Headers();
+  headers.set("cookie", `payload-token=${token.value}`);
+  const { user } = await payload.auth({ headers });
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OpenAI API key is not configured");
+  }
+
+  const openai = new OpenAI({ apiKey });
+
+  // Get or generate image description
+  let description = "";
+
+  // First try to get existing design description
+  const design = await payload.findByID({
+    collection: "postcard-designs",
+    id: designId,
+    depth: 1,
+  });
+
+  description = design.description;
+
+  // If no description and we have an image, generate one
+  if (!description && (imageId || design.frontImage)) {
+    const imageToDescribe = imageId || design.frontImage;
+    try {
+      description = await describeImage(imageToDescribe, token.value);
+
+      // Save the generated description
+      await payload.update({
+        collection: "postcard-designs",
+        id: designId,
+        data: { description },
+      });
+    } catch (error) {
+      console.error("Error generating description:", error);
+    }
+  }
+
+  // Generate postcard message
+  try {
+    const prompt = currentMessage
+      ? `You have a postcard with this image: "${description}".
+         The current message is: "${currentMessage}".
+         Generate an improved, creative postcard message that builds on the current message.
+         Keep it personal, warm, and appropriate for a postcard (3-4 sentences max).
+         Make it sound natural and heartfelt.`
+      : `You have a postcard with this image: "${description || 'a beautiful scene'}".
+         Generate a creative, warm postcard message that relates to the image.
+         Keep it personal and appropriate for a postcard (3-4 sentences max).
+         Make it sound natural and heartfelt, as if written to a dear friend.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a creative writer helping to compose heartfelt postcard messages. Write in first person, as if the sender is writing to someone they care about."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 150,
+      temperature: 0.8,
+    });
+
+    const generatedMessage = response.choices[0].message.content?.trim();
+
+    if (!generatedMessage) {
+      throw new Error("Failed to generate message");
+    }
+
+    return { message: generatedMessage, description };
+  } catch (error) {
+    console.error("Error generating postcard message:", error);
+    throw new Error("Failed to generate message");
+  }
+}
+
 
 export async function createVariant(originalId: string) {
   console.log("=== Starting variant creation for design:", originalId);

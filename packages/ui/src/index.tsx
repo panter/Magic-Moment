@@ -4,3 +4,4 @@ export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { ErrorMessage } from "./error-message";
 export { ImageUpload } from "./image-upload";
+export { PostcardPreview } from "./PostcardPreview";
