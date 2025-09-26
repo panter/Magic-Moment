@@ -142,12 +142,8 @@
           "name": "postcard_designs_overlays_parent_id_fk",
           "tableFrom": "postcard_designs_overlays",
           "tableTo": "postcard_designs",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -370,12 +366,8 @@
           "name": "postcard_designs_image_original_id_media_id_fk",
           "tableFrom": "postcard_designs",
           "tableTo": "media",
-          "columnsFrom": [
-            "image_original_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["image_original_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -383,12 +375,8 @@
           "name": "postcard_designs_front_image_id_media_id_fk",
           "tableFrom": "postcard_designs",
           "tableTo": "media",
-          "columnsFrom": [
-            "front_image_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["front_image_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -396,12 +384,8 @@
           "name": "postcard_designs_created_by_id_users_id_fk",
           "tableFrom": "postcard_designs",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -514,12 +498,8 @@
           "name": "postcard_designs_rels_parent_fk",
           "tableFrom": "postcard_designs_rels",
           "tableTo": "postcard_designs",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -527,12 +507,8 @@
           "name": "postcard_designs_rels_media_fk",
           "tableFrom": "postcard_designs_rels",
           "tableTo": "media",
-          "columnsFrom": [
-            "media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["media_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -615,12 +591,8 @@
           "name": "users_sessions_parent_id_fk",
           "tableFrom": "users_sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -910,12 +882,8 @@
           "name": "postcards_image_id_media_id_fk",
           "tableFrom": "postcards",
           "tableTo": "media",
-          "columnsFrom": [
-            "image_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["image_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -923,12 +891,8 @@
           "name": "postcards_created_by_id_users_id_fk",
           "tableFrom": "postcards",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1193,12 +1157,8 @@
           "name": "templates_template_image_id_media_id_fk",
           "tableFrom": "templates",
           "tableTo": "media",
-          "columnsFrom": [
-            "template_image_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["template_image_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1480,12 +1440,8 @@
           "name": "payload_locked_documents_rels_parent_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "payload_locked_documents",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1493,12 +1449,8 @@
           "name": "payload_locked_documents_rels_postcard_designs_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "postcard_designs",
-          "columnsFrom": [
-            "postcard_designs_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["postcard_designs_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1506,12 +1458,8 @@
           "name": "payload_locked_documents_rels_users_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1519,12 +1467,8 @@
           "name": "payload_locked_documents_rels_postcards_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "postcards",
-          "columnsFrom": [
-            "postcards_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["postcards_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1532,12 +1476,8 @@
           "name": "payload_locked_documents_rels_media_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "media",
-          "columnsFrom": [
-            "media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["media_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1545,12 +1485,8 @@
           "name": "payload_locked_documents_rels_templates_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "templates",
-          "columnsFrom": [
-            "templates_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["templates_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1754,12 +1690,8 @@
           "name": "payload_preferences_rels_parent_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "payload_preferences",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1767,12 +1699,8 @@
           "name": "payload_preferences_rels_users_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1864,31 +1792,17 @@
     "public.enum_postcard_designs_overlays_font_family": {
       "name": "enum_postcard_designs_overlays_font_family",
       "schema": "public",
-      "values": [
-        "sans-serif",
-        "serif",
-        "cursive",
-        "display"
-      ]
+      "values": ["sans-serif", "serif", "cursive", "display"]
     },
     "public.enum_postcard_designs_overlays_text_align": {
       "name": "enum_postcard_designs_overlays_text_align",
       "schema": "public",
-      "values": [
-        "left",
-        "center",
-        "right"
-      ]
+      "values": ["left", "center", "right"]
     },
     "public.enum_postcard_designs_font": {
       "name": "enum_postcard_designs_font",
       "schema": "public",
-      "values": [
-        "sans",
-        "serif",
-        "handwritten",
-        "decorative"
-      ]
+      "values": ["sans", "serif", "handwritten", "decorative"]
     },
     "public.enum_postcard_designs_layout": {
       "name": "enum_postcard_designs_layout",
@@ -1915,30 +1829,17 @@
     "public.enum_users_role": {
       "name": "enum_users_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "user"
-      ]
+      "values": ["admin", "user"]
     },
     "public.enum_postcards_status": {
       "name": "enum_postcards_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "sent",
-        "delivered"
-      ]
+      "values": ["draft", "sent", "delivered"]
     },
     "public.enum_templates_category": {
       "name": "enum_templates_category",
       "schema": "public",
-      "values": [
-        "holiday",
-        "birthday",
-        "thankyou",
-        "greeting",
-        "travel"
-      ]
+      "values": ["holiday", "birthday", "thankyou", "greeting", "travel"]
     }
   },
   "schemas": {},

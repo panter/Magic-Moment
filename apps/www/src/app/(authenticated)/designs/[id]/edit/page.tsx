@@ -10,7 +10,8 @@ import {
 } from "@/app/actions/designs";
 import { generateOverlayText } from "@/app/actions/generateOverlayText";
 import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
-import { uploadImage } from "@/app/actions/upload";
+import { uploadFromUrl } from "@/app/actions/uploadFromUrl";
+import { uploadToCloudinary } from "@/lib/cloudinary-upload";
 import {
   Button,
   Input,
@@ -42,12 +43,12 @@ export default function EditDesignPage() {
     "original" | "variant"
   >("original");
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null,
+    null
   );
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [locationName, setLocationName] = useState<string | null>(null);
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(
-    null,
+    null
   );
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
@@ -59,6 +60,7 @@ export default function EditDesignPage() {
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [autoSaving, setAutoSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -85,7 +87,7 @@ export default function EditDesignPage() {
         }
       }, 1000); // Auto-save after 1 second of no changes
     },
-    [id],
+    [id]
   );
 
   // Update overlays with auto-save
@@ -94,7 +96,7 @@ export default function EditDesignPage() {
       setOverlays(newOverlays);
       debouncedAutoSave(newOverlays);
     },
-    [debouncedAutoSave],
+    [debouncedAutoSave]
   );
 
   useEffect(() => {
@@ -135,7 +137,7 @@ export default function EditDesignPage() {
           // Check if current frontImage is a variant
           const currentIsVariant = design.imageVariantsData.find(
             (v: any) =>
-              v.id === design.frontImage?.id || v.id === design.frontImage,
+              v.id === design.frontImage?.id || v.id === design.frontImage
           );
           if (currentIsVariant) {
             setSelectedImageType("variant");
@@ -166,7 +168,7 @@ export default function EditDesignPage() {
       const result = await generatePostcardMessage(
         id,
         message,
-        imageFile ? undefined : currentImageId || undefined,
+        imageFile ? undefined : currentImageId || undefined
       );
 
       // Save the generated message immediately
@@ -242,9 +244,20 @@ export default function EditDesignPage() {
         // Auto-save the image immediately
         try {
           setAutoSaving(true);
-          const formData = new FormData();
-          formData.append("file", file);
-          const uploadedImage = await uploadImage(formData);
+          setUploadProgress(0);
+
+          // Upload directly to Cloudinary
+          const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
+            setUploadProgress(progress)
+          );
+
+          // Save URL to backend
+          const uploadedImage = await uploadFromUrl({
+            url: cloudinaryResult.url,
+            filename: file.name,
+            mimeType: file.type,
+            isVideo: false,
+          });
           const imageId = uploadedImage.id as string;
 
           // Update both imageOriginal and frontImage
@@ -288,9 +301,21 @@ export default function EditDesignPage() {
       // Auto-save the video immediately
       try {
         setAutoSaving(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        const uploadedVideo = await uploadImage(formData);
+        setUploadProgress(0);
+
+        // Upload directly to Cloudinary
+        const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
+          setUploadProgress(progress)
+        );
+
+        // Save URL to backend
+        const uploadedVideo = await uploadFromUrl({
+          url: cloudinaryResult.url,
+          filename: file.name,
+          mimeType: file.type,
+          isVideo: cloudinaryResult.resourceType === "video",
+          thumbnailUrl: cloudinaryResult.thumbnailUrl,
+        });
 
         // Update video URL in design
         await updateDesign(id, {
@@ -316,7 +341,7 @@ export default function EditDesignPage() {
 
   const handleImageSelection = (
     type: "original" | "variant",
-    variantId?: string,
+    variantId?: string
   ) => {
     setSelectedImageType(type);
 
@@ -514,7 +539,7 @@ export default function EditDesignPage() {
                   const updatedOverlays = overlays.map((overlay) =>
                     overlay.id === overlayId
                       ? { ...overlay, ...updates }
-                      : overlay,
+                      : overlay
                   );
                   updateOverlaysWithSave(updatedOverlays);
                 }}
@@ -568,8 +593,8 @@ export default function EditDesignPage() {
                       message.length > MESSAGE_CHAR_LIMIT
                         ? "text-red-600 font-semibold"
                         : message.length > MESSAGE_CHAR_LIMIT * 0.9
-                          ? "text-amber-600"
-                          : "text-gray-500"
+                        ? "text-amber-600"
+                        : "text-gray-500"
                     }`}
                   >
                     {message.length}/{MESSAGE_CHAR_LIMIT}
@@ -631,7 +656,7 @@ export default function EditDesignPage() {
                         </h4>
                         <div className="relative rounded-lg overflow-hidden shadow-lg bg-black">
                           <video
-                            src={videoPreview || videoUrl}
+                            src={videoPreview || videoUrl || undefined}
                             controls
                             className="w-full"
                             style={{ maxHeight: "300px" }}
