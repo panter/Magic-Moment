@@ -2,17 +2,30 @@ import OpenAI from "openai";
 import sharp from "sharp";
 import { getPayload } from "payload";
 import configPromise from "../../payload.config";
+import { extractLocationFromImage, formatLocationForDescription } from "./exif-location";
+
+interface GeoData {
+  latitude?: number;
+  longitude?: number;
+  locationName?: string;
+}
+
+interface ImageAnalysisResult {
+  description: string;
+  geoData: GeoData;
+}
 
 /**
  * Describes what is visible in an image from Payload media using OpenAI Vision
+ * and extracts geo information from EXIF data
  * @param mediaRef - Either a media document ID string or a media document object
  * @param authToken - The payload authentication token value
- * @returns A factual description of what is visible in the image
+ * @returns Description and geo data extracted from the image
  */
 export async function describeImage(
   mediaRef: string | any,
   authToken: string
-): Promise<string> {
+): Promise<ImageAnalysisResult> {
   // Initialize OpenAI
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -36,8 +49,28 @@ export async function describeImage(
     throw new Error("Media document not found");
   }
 
-  // Get the image data URL
-  const imageDataUrl = await getImageDataURL(mediaDoc, authToken);
+  // Get the image buffer for EXIF extraction
+  const imageBuffer = await getImageBuffer(mediaDoc, authToken);
+
+  // Extract location information from EXIF
+  const locationInfo = await extractLocationFromImage(imageBuffer);
+  const locationString = formatLocationForDescription(locationInfo);
+
+  // Log EXIF extraction results
+  if (locationInfo.latitude && locationInfo.longitude) {
+    console.log(`✅ EXIF coordinates extracted successfully for ${mediaDoc.filename || 'image'}:`, {
+      latitude: locationInfo.latitude,
+      longitude: locationInfo.longitude,
+      locationName: locationInfo.locationName || "No location name available",
+    });
+  } else {
+    console.log(`❌ No EXIF coordinates found for ${mediaDoc.filename || 'image'}`);
+  }
+
+  // Convert buffer to data URL for OpenAI
+  const jpegBuffer = await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer();
+  const base64 = jpegBuffer.toString("base64");
+  const imageDataUrl = `data:image/jpeg;base64,${base64}`;
 
   // Describe the image with OpenAI Vision
   const visionResponse = await openai.chat.completions.create({
@@ -64,19 +97,31 @@ export async function describeImage(
     throw new Error("OpenAI Vision API returned no description");
   }
 
-  return description;
+  // Add location information if available
+  const finalDescription = locationString
+    ? `${description}\n\n${locationString}`
+    : description;
+
+  return {
+    description: finalDescription,
+    geoData: {
+      latitude: locationInfo.latitude || undefined,
+      longitude: locationInfo.longitude || undefined,
+      locationName: locationInfo.locationName || undefined,
+    },
+  };
 }
 
 /**
- * Fetches an image from Payload media and converts it to a base64 data URL
+ * Fetches an image from Payload media and returns the raw buffer
  * @param mediaDoc - The resolved media document
  * @param authToken - The payload authentication token value
- * @returns A base64 data URL of the image in JPEG format
+ * @returns The raw image buffer
  */
-async function getImageDataURL(
+async function getImageBuffer(
   mediaDoc: any,
   authToken: string
-): Promise<string> {
+): Promise<Buffer> {
   // Get the URL from the media document
   const urlFromDoc: string | undefined = mediaDoc.url;
   if (!urlFromDoc) {
@@ -110,6 +155,21 @@ async function getImageDataURL(
 
   const arrayBuf = await res.arrayBuffer();
   const inputBuffer = Buffer.from(arrayBuf);
+
+  return inputBuffer;
+}
+
+/**
+ * Fetches an image from Payload media and converts it to a base64 data URL
+ * @param mediaDoc - The resolved media document
+ * @param authToken - The payload authentication token value
+ * @returns A base64 data URL of the image in JPEG format
+ */
+async function getImageDataURL(
+  mediaDoc: any,
+  authToken: string
+): Promise<string> {
+  const inputBuffer = await getImageBuffer(mediaDoc, authToken);
 
   // Always convert to JPEG to ensure compatibility with OpenAI Vision
   console.log("Converting to JPEG for OpenAI Vision API");

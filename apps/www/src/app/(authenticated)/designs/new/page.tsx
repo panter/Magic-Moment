@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createDesign } from "@/app/actions/designs";
 import { uploadImage } from "@/app/actions/upload";
 import { Button, ErrorMessage, ImageUpload } from "@repo/ui";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import type { CreateDesignInput } from "@/app/actions/types";
 
 export default function NewDesignPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -12,6 +14,9 @@ export default function NewDesignPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { latitude, longitude, requestLocation, permissionStatus } =
+    useGeolocation();
+  const [locationRequested, setLocationRequested] = useState(false);
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
@@ -21,6 +26,17 @@ export default function NewDesignPage() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Automatically request location when image is uploaded
+      // Only if we don't have location yet and haven't asked before
+      if (!latitude && !longitude && !locationRequested && permissionStatus !== "denied") {
+        console.log("Auto-requesting location after image upload");
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+          requestLocation();
+          setLocationRequested(true);
+        }, 100);
+      }
     } else {
       setImagePreview(null);
     }
@@ -50,7 +66,7 @@ export default function NewDesignPage() {
 
       // Create the design with the uploaded image
       // Description will be generated automatically on the server
-      const design = await createDesign({
+      const designData: CreateDesignInput = {
         name: automaticName,
         description: "", // Will be generated automatically
         category: "custom",
@@ -61,7 +77,22 @@ export default function NewDesignPage() {
         font: "sans",
         layout: "full-image",
         isPublic: false,
-      });
+      };
+
+      // Include browser location if available (will be used as fallback if image has no EXIF)
+      if (latitude && longitude) {
+        designData.browserLatitude = latitude;
+        designData.browserLongitude = longitude;
+        console.log("Sending browser location as fallback:", {
+          latitude,
+          longitude,
+          designData,
+        });
+      } else {
+        console.log("No browser location available:", { latitude, longitude });
+      }
+
+      const design = await createDesign(designData);
 
       // Redirect to the edit page of the newly created design
       router.push(`/designs/${design.id}/edit`);
@@ -80,7 +111,8 @@ export default function NewDesignPage() {
             Create New Design
           </h1>
           <p className="text-gray-600 mb-8">
-            Upload an image and we'll automatically generate a name and description for your postcard design.
+            Upload an image and we'll automatically generate a name and
+            description for your postcard design.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -104,8 +136,34 @@ export default function NewDesignPage() {
                     .replace(/\b\w/g, (l) => l.toUpperCase())}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Description will be generated automatically from the image content
+                  Description will be generated automatically from the image
+                  content
                 </p>
+                {/* Location status */}
+                {latitude && longitude ? (
+                  <p className="text-sm text-green-600 mt-2">
+                    ✅ Current location captured ({latitude.toFixed(4)}, {longitude.toFixed(4)}) - will be used if image has no GPS data
+                  </p>
+                ) : permissionStatus === "denied" ? (
+                  <p className="text-sm text-amber-600 mt-2">
+                    ⚠️ Location access denied - only image GPS data will be used
+                  </p>
+                ) : locationRequested ? (
+                  <p className="text-sm text-blue-500 mt-2 animate-pulse">
+                    ⏳ Getting your location...
+                  </p>
+                ) : permissionStatus === "prompt" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      requestLocation();
+                      setLocationRequested(true);
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 mt-2 underline"
+                  >
+                    📍 Enable location for better geotagging
+                  </button>
+                )}
               </div>
             )}
 
