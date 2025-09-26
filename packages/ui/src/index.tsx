@@ -8,3 +8,5 @@ export { PostcardPreview } from "./PostcardPreview";
 export { Modal } from "./modal";
 export { OverlayEditor } from "./OverlayEditor";
 export type { Overlay } from "./OverlayEditor";
+export { Tabs, TabPanel } from "./tabs";
+export type { Tab } from "./tabs";
