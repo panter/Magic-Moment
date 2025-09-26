@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/app/actions/auth";
 import LoginForm from "@/components/login-form";
-
+export const dynamic = "force-dynamic";
+export const revalidate = 0; // disable ISR
+export const fetchCache = "force-no-store";
 export default async function AuthenticatedLayout({
   children,
 }: {
