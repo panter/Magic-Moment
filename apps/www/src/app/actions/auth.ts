@@ -48,8 +48,10 @@ export async function register(email: string, password: string) {
     });
 
     const loginResult = await login(email, password);
+    console;
     return { success: true, user: loginResult.user };
   } catch (error) {
+    console.error("Registration failed", error);
     return { success: false, error: "Registration failed" };
   }
 }
