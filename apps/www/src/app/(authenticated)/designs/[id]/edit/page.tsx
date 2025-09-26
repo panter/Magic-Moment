@@ -493,9 +493,38 @@ export default function EditDesignPage() {
           </a>
         </div>
 
-        <div className="flex gap-8">
-          {/* Control Panel with Tabs */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 max-w-3xl">
+        {/* Desktop Layout: Side by side, Mobile Layout: Stacked */}
+        <div className="lg:flex lg:gap-8">
+          {/* Preview Section - Shows on top on mobile, right side on desktop */}
+          <div className="w-full lg:max-w-md lg:order-2 mb-8 lg:mb-0">
+            <div className="lg:sticky lg:top-8 bg-white rounded-2xl shadow-xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Preview
+              </h2>
+
+              <PostcardPreview
+                frontImage={imagePreview}
+                message={message || "Your message will appear here..."}
+                recipientName="Jane Smith"
+                recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
+                designId={id}
+                overlays={overlays}
+                selectedOverlayId={selectedOverlayId}
+                onOverlayUpdate={(overlayId, updates) => {
+                  const updatedOverlays = overlays.map((overlay) =>
+                    overlay.id === overlayId
+                      ? { ...overlay, ...updates }
+                      : overlay,
+                  );
+                  updateOverlaysWithSave(updatedOverlays);
+                }}
+                onOverlaySelect={setSelectedOverlayId}
+              />
+            </div>
+          </div>
+
+          {/* Control Panel with Tabs - Shows below preview on mobile, left side on desktop */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 lg:order-1">
             <form onSubmit={handleSubmit}>
               {error && <ErrorMessage>{error}</ErrorMessage>}
 
@@ -569,7 +598,7 @@ export default function EditDesignPage() {
               <Tabs
                 tabs={tabs}
                 defaultTab="image"
-                orientation="vertical"
+                orientation="horizontal"
                 className="mb-6"
               >
                 {/* Video Source Tab */}
@@ -783,34 +812,6 @@ export default function EditDesignPage() {
                 </Button>
               </div>
             </form>
-          </div>
-
-          {/* Preview Section - Right Side */}
-          <div className="w-full max-w-md">
-            <div className="sticky top-8 bg-white rounded-2xl shadow-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Preview
-              </h2>
-
-              <PostcardPreview
-                frontImage={imagePreview}
-                message={message || "Your message will appear here..."}
-                recipientName="Jane Smith"
-                recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
-                designId={id}
-                overlays={overlays}
-                selectedOverlayId={selectedOverlayId}
-                onOverlayUpdate={(overlayId, updates) => {
-                  const updatedOverlays = overlays.map((overlay) =>
-                    overlay.id === overlayId
-                      ? { ...overlay, ...updates }
-                      : overlay,
-                  );
-                  updateOverlaysWithSave(updatedOverlays);
-                }}
-                onOverlaySelect={setSelectedOverlayId}
-              />
-            </div>
           </div>
         </div>
       </div>
