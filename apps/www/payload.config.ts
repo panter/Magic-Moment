@@ -1,9 +1,10 @@
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { PostcardDesign } from './src/collections/PostcardDesign'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -13,6 +14,7 @@ export default buildConfig({
     user: 'users',
   },
   collections: [
+    PostcardDesign,
     {
       slug: 'users',
       auth: true,
@@ -98,10 +100,9 @@ export default buildConfig({
     {
       slug: 'media',
       upload: {
-        disableLocalStorage: true,
-        adapter: uploadthingStorage({
-          token: process.env.UPLOADTHING_TOKEN!,
-        }),
+        staticDir: 'media',
+        staticURL: '/media',
+        mimeTypes: ['image/*'],
       },
       fields: [
         {

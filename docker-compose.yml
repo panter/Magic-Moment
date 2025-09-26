@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: magic_moment_db
+    environment:
+      POSTGRES_USER: magic_moment_user
+      POSTGRES_PASSWORD: magic_moment_pass
+      POSTGRES_DB: magic_moment
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
