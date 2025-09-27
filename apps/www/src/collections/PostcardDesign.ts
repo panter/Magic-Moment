@@ -61,7 +61,6 @@ export const PostcardDesign: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
-      access: {
       admin: {
         description: "The original uploaded image",
       },
