@@ -34,7 +34,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
-    "@img/sharp-wasm32": "^0.34.4"
+    "sharp": "^0.34.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
