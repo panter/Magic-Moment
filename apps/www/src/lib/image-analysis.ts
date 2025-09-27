@@ -7,6 +7,7 @@ import {
   extractLocationFromImage,
   formatLocationForDescription,
 } from "./exif-location";
+import { NEXT_PUBLIC_URL } from "./constants";
 
 interface GeoData {
   latitude?: number;
@@ -28,7 +29,7 @@ interface ImageAnalysisResult {
  */
 export async function describeImage(
   mediaRef: string | any,
-  authToken: string,
+  authToken: string
 ): Promise<ImageAnalysisResult> {
   // Initialize OpenAI
   const apiKey = process.env.OPENAI_API_KEY;
@@ -70,17 +71,17 @@ export async function describeImage(
         latitude: locationInfo.latitude,
         longitude: locationInfo.longitude,
         locationName: locationInfo.locationName || "No location name available",
-      },
+      }
     );
   } else {
     console.log(
-      `❌ No EXIF coordinates found for ${mediaDoc.filename || "image"}`,
+      `❌ No EXIF coordinates found for ${mediaDoc.filename || "image"}`
     );
   }
 
   // Convert buffer to data URL for OpenAI
   const jpegBuffer = await import("sharp").then((sharp) =>
-    sharp.default(imageBuffer).jpeg({ quality: 90 }).toBuffer(),
+    sharp.default(imageBuffer).jpeg({ quality: 90 }).toBuffer()
   );
   const base64 = jpegBuffer.toString("base64");
   const imageDataUrl = `data:image/jpeg;base64,${base64}`;
@@ -133,7 +134,7 @@ export async function describeImage(
  */
 async function getImageBuffer(
   mediaDoc: any,
-  authToken: string,
+  authToken: string
 ): Promise<Buffer> {
   // Get the URL from the media document
   const urlFromDoc: string | undefined = mediaDoc.url;
@@ -142,7 +143,7 @@ async function getImageBuffer(
   }
 
   // Construct the full URL
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+  const baseUrl = NEXT_PUBLIC_URL || "http://localhost:3000";
   const fullUrl =
     urlFromDoc.startsWith("http://") || urlFromDoc.startsWith("https://")
       ? urlFromDoc
@@ -159,7 +160,7 @@ async function getImageBuffer(
 
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`,
+      `Failed to fetch media binary (${res.status} ${res.statusText}) from ${fullUrl}`
     );
   }
 

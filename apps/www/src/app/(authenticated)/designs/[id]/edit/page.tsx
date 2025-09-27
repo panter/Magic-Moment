@@ -9,7 +9,7 @@ import {
   createVariant,
 } from "@/app/actions/designs";
 import { generateOverlayText } from "@/app/actions/generateOverlayText";
-import { MESSAGE_CHAR_LIMIT } from "@/lib/constants";
+import { MESSAGE_CHAR_LIMIT, NEXT_PUBLIC_URL } from "@/lib/constants";
 import { uploadFromUrl } from "@/app/actions/uploadFromUrl";
 import { uploadToCloudinary } from "@/lib/cloudinary-upload";
 import {
@@ -528,6 +528,7 @@ export default function EditDesignPage() {
               </h2>
 
               <PostcardPreview
+                rootUrl={NEXT_PUBLIC_URL}
                 frontImage={imagePreview}
                 message={message || "Your message will appear here..."}
                 recipientName="Jane Smith"
