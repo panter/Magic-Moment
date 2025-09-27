@@ -10,9 +10,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "100mb",
     },
-
-    serverComponentsExternalPackages: ["sharp", "@img/sharp-linux-x64"],
   },
+  serverExternalPackages: ["sharp", "@img/sharp-linux-x64"],
 };
 
 export default nextConfig;
