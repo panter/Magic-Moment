@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createDesign } from "@/app/actions/designs";
-import { uploadImage } from "@/app/actions/upload";
+import { uploadFromUrl } from "@/app/actions/uploadFromUrl";
+import { uploadToCloudinary } from "@/lib/cloudinary-upload";
 import { Button, ErrorMessage, ImageUpload } from "@repo/ui";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { CreateDesignInput } from "@/app/actions/types";
@@ -13,6 +14,7 @@ export default function NewDesignPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const router = useRouter();
   const { latitude, longitude, requestLocation, permissionStatus } =
@@ -73,10 +75,20 @@ export default function NewDesignPage() {
     setError("");
 
     try {
-      // Upload the image/video first
-      const formData = new FormData();
-      formData.append("file", imageFile);
-      const uploadedImage = await uploadImage(formData);
+      // Upload directly to Cloudinary first
+      setUploadProgress(0);
+      const cloudinaryResult = await uploadToCloudinary(imageFile, (progress) =>
+        setUploadProgress(progress),
+      );
+
+      // Then save the URL to our backend
+      const uploadedImage = await uploadFromUrl({
+        url: cloudinaryResult.url,
+        filename: imageFile.name,
+        mimeType: imageFile.type,
+        isVideo: cloudinaryResult.resourceType === "video",
+        thumbnailUrl: cloudinaryResult.thumbnailUrl,
+      });
 
       // Generate automatic name from filename (without extension)
       const automaticName = imageFile.name
@@ -139,15 +151,30 @@ export default function NewDesignPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <ErrorMessage>{error}</ErrorMessage>}
 
-            <ImageUpload
-              label="Upload Postcard Image or Video"
-              value={imageFile}
-              preview={videoPreview ? null : imagePreview}
-              onChange={handleImageChange}
-              acceptVideo={true}
-              maxSize="100MB"
-              disabled={loading}
-            />
+            <div>
+              <ImageUpload
+                label="Upload Postcard Image or Video"
+                value={imageFile}
+                preview={videoPreview ? null : imagePreview}
+                onChange={handleImageChange}
+                acceptVideo={true}
+                maxSize="100MB"
+                disabled={loading}
+              />
+              {loading && uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="mt-2">
+                  <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-[#ffcc02] h-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Uploading... {uploadProgress}%
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Single Preview - Shows either video or image */}
             {videoPreview && (

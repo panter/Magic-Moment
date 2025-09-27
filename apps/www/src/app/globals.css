@@ -29,12 +29,15 @@ body {
 }
 
 /* Ensure inputs always have proper text color */
-input, textarea, select {
+input,
+textarea,
+select {
   color: #111827; /* gray-900 */
   background-color: white;
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #9ca3af; /* gray-400 */
 }
 
