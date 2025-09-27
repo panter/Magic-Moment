@@ -3,11 +3,11 @@
 import OpenAI from "openai";
 import { getPayload } from "payload";
 import configPromise from "../../payload.config";
+import { NEXT_PUBLIC_URL } from "./constants";
 import {
   extractLocationFromImage,
   formatLocationForDescription,
 } from "./exif-location";
-import { NEXT_PUBLIC_URL } from "./constants";
 
 interface GeoData {
   latitude?: number;
@@ -142,21 +142,43 @@ async function getImageBuffer(
     throw new Error("Media document is missing a url field");
   }
 
-  // Construct the full URL
-  const baseUrl = NEXT_PUBLIC_URL || "http://localhost:3000";
-  const fullUrl =
-    urlFromDoc.startsWith("http://") || urlFromDoc.startsWith("https://")
+  // Check if this is a Vercel Blob Storage URL or external URL
+  const isExternalUrl =
+    urlFromDoc.startsWith("http://") || urlFromDoc.startsWith("https://");
+  const isVercelBlobUrl =
+    isExternalUrl &&
+    (urlFromDoc.includes(".blob.vercel-store.com/") ||
+      urlFromDoc.includes(".public.blob.vercel-storage.com/"));
+
+  let fullUrl: string;
+  let fetchOptions: RequestInit = {};
+
+  if (
+    isVercelBlobUrl ||
+    (isExternalUrl &&
+      !urlFromDoc.startsWith(NEXT_PUBLIC_URL || "http://localhost:3000"))
+  ) {
+    // For Vercel Blob URLs and other external URLs, use them directly without authentication
+    fullUrl = urlFromDoc;
+    console.log("Fetching from external/blob URL:", fullUrl);
+  } else {
+    // For relative URLs or URLs pointing to our own application, construct the full URL and use authentication
+    const baseUrl = NEXT_PUBLIC_URL || "http://localhost:3000";
+    fullUrl = isExternalUrl
       ? urlFromDoc
       : `${baseUrl}${urlFromDoc.startsWith("/") ? "" : "/"}${urlFromDoc}`;
 
-  console.log("Fetching image from:", fullUrl);
+    // Add authentication for internal URLs
+    fetchOptions = {
+      headers: {
+        cookie: `payload-token=${authToken}`,
+      },
+    };
+    console.log("Fetching from internal URL with auth:", fullUrl);
+  }
 
-  // Fetch the binary from Payload using the auth cookie so protected routes work
-  const res = await fetch(fullUrl, {
-    headers: {
-      cookie: `payload-token=${authToken}`,
-    },
-  });
+  // Fetch the binary
+  const res = await fetch(fullUrl, fetchOptions);
 
   if (!res.ok) {
     throw new Error(
