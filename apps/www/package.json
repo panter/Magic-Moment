@@ -34,11 +34,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
-    "sharp": "^0.34.4"
-  },
-  "optionalDependencies": {
-    "@img/sharp-linux-x64": "0.34.4",
-    "@img/sharp-linuxmusl-x64": "0.34.4"
+    "@img/sharp-wasm32": "^0.34.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",

@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 
 import { extractLocationFromImage } from "@/lib/exif-location";
 import { isVideoFile, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { getSharp } from "@/lib/sharp";
 
 export async function uploadImage(formData: FormData): Promise<any> {
   const payload = await getPayload({ config: configPromise });
@@ -44,7 +45,7 @@ export async function uploadImage(formData: FormData): Promise<any> {
       // Download the thumbnail from Cloudinary to store in Payload
       const thumbnailResponse = await fetch(cloudinaryResult.thumbnailUrl);
       const thumbnailBuffer = Buffer.from(
-        await thumbnailResponse.arrayBuffer(),
+        await thumbnailResponse.arrayBuffer()
       );
 
       // Create media entry with the thumbnail
@@ -86,10 +87,10 @@ export async function uploadImage(formData: FormData): Promise<any> {
   ) {
     console.log("Converting HEIC to JPEG...");
     try {
-      const convertedBuffer = await import("sharp")
-        .then((sharp) => sharp.default(buffer))
-        .then((sharp) => sharp.jpeg({ quality: 90 }))
-        .then((sharp) => sharp.toBuffer());
+      const sharp = await getSharp();
+      const convertedBuffer = await sharp(buffer)
+        .jpeg({ quality: 90 })
+        .toBuffer();
 
       buffer = Buffer.from(convertedBuffer);
       mimetype = "image/jpeg";

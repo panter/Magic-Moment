@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import OpenAI from "openai";
 import { toFile } from "openai/uploads";
 import { describeImage } from "@/lib/image-analysis";
+import { getSharp } from "@/lib/sharp";
 
 export async function createVariant(designId: string, customPrompt?: string) {
   console.log("=== Starting variant creation for design:", designId);
@@ -171,13 +172,11 @@ export async function createVariant(designId: string, customPrompt?: string) {
           if (res.ok) {
             const arrayBuf = await res.arrayBuffer();
             const inputBuffer = Buffer.from(arrayBuf);
-
+            const sharp = await getSharp();
             // Convert to JPEG and create data URL
-            const jpegBuffer = await import("sharp")
-              .then((sharp) => sharp.default(inputBuffer))
-              .then((sharp) => sharp.jpeg({ quality: 90 }))
-              .then((sharp) => sharp.toBuffer())
-              .then((buffer) => buffer);
+            const jpegBuffer = await sharp(inputBuffer)
+              .jpeg({ quality: 90 })
+              .toBuffer();
             const base64 = jpegBuffer.toString("base64");
             originalImageDataUrl = `data:image/jpeg;base64,${base64}`;
             // Keep the original image buffer for image-to-image edits
