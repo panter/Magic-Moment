@@ -14,7 +14,7 @@ interface PostcardPreviewProps {
   overlays?: Overlay[];
   onOverlayUpdate?: (
     overlayId: string,
-    updates: { x: number; y: number }
+    updates: { x: number; y: number },
   ) => void;
   selectedOverlayId?: string | null;
   onOverlaySelect?: (overlayId: string) => void;
@@ -224,17 +224,17 @@ export function PostcardPreview({
                             <text
                               x={`${displayX}%`}
                               y={`${displayY}%`}
-                              fontSize={`${overlay.fontSize / 4}px`}
+                              fontSize={overlay.fontSize / 5}
                               fontFamily={fontFamilyMap[overlay.fontFamily]}
                               fill={overlay.color}
                               stroke={overlay.strokeColor}
-                              strokeWidth={overlay.strokeWidth}
+                              strokeWidth={overlay.strokeWidth / 20}
                               textAnchor={
                                 overlay.textAlign === "left"
                                   ? "start"
                                   : overlay.textAlign === "right"
-                                  ? "end"
-                                  : "middle"
+                                    ? "end"
+                                    : "middle"
                               }
                               dominantBaseline="middle"
                               transform={`rotate(${overlay.rotation}, ${displayX}, ${displayY})`}
@@ -262,7 +262,7 @@ export function PostcardPreview({
                                 // Then apply word wrapping to each manual line
                                 const maxCharsPerLine = Math.max(
                                   8,
-                                  Math.floor(45 / (overlay.fontSize / 24))
+                                  Math.floor(45 / (overlay.fontSize / 24)),
                                 );
 
                                 manualLines.forEach((line) => {
@@ -298,7 +298,7 @@ export function PostcardPreview({
                                 }
 
                                 // Multiple lines - use tspan elements
-                                const lineHeight = overlay.fontSize / 3.5;
+                                const lineHeight = overlay.fontSize / 35;
                                 const startY =
                                   (-(lines.length - 1) * lineHeight) / 2;
 
@@ -306,17 +306,13 @@ export function PostcardPreview({
                                   <tspan
                                     key={i}
                                     x={`${displayX}%`}
-                                    dy={
-                                      i === 0
-                                        ? `${startY}px`
-                                        : `${lineHeight}px`
-                                    }
+                                    dy={i === 0 ? startY : lineHeight}
                                     textAnchor={
                                       overlay.textAlign === "left"
                                         ? "start"
                                         : overlay.textAlign === "right"
-                                        ? "end"
-                                        : "middle"
+                                          ? "end"
+                                          : "middle"
                                     }
                                   >
                                     {line}
@@ -357,50 +353,114 @@ export function PostcardPreview({
                 transform: "rotateY(180deg)",
               }}
             >
-              <div className="w-full h-full p-4 flex">
+              <svg
+                className="w-full h-full"
+                viewBox="0 0 148 105"
+                preserveAspectRatio="xMidYMid meet"
+              >
                 {/* Left side - Message */}
-                <div className="w-1/2 pr-3 flex flex-col">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-700 font-handwriting leading-relaxed">
-                      {message}
-                    </p>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500">
-                      Sent with ❤️ from Switzerland
-                    </p>
-                  </div>
-                </div>
+                <text
+                  x="5"
+                  y="15"
+                  fontSize="3.5"
+                  fill="#374151"
+                  fontFamily="cursive"
+                  style={{ maxWidth: "68px" }}
+                >
+                  {message.split('\n').map((line, index) => (
+                    <tspan key={index} x="5" dy={index === 0 ? 0 : 4}>
+                      {line.length > 30 ? line.substring(0, 30) + '...' : line}
+                    </tspan>
+                  ))}
+                </text>
+
+                <text
+                  x="5"
+                  y="90"
+                  fontSize="3"
+                  fill="#6B7280"
+                  fontFamily="sans-serif"
+                >
+                  Sent with ❤️ from Switzerland
+                </text>
 
                 {/* Divider line */}
-                <div className="w-px bg-gray-300"></div>
+                <line x1="74" y1="10" x2="74" y2="95" stroke="#D1D5DB" strokeWidth="0.5" />
 
-                {/* Right side - Address and Stamp */}
-                <div className="w-1/2 pl-3 flex flex-col">
-                  {/* Stamp area */}
-                  <div className="self-end mb-3">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-sm shadow-md flex items-center justify-center transform rotate-3">
-                      <div className="text-white text-center">
-                        <div className="text-xs font-bold">SWISS</div>
-                        <div className="text-lg font-bold">POST</div>
-                        <div className="text-xs">CHF 1.20</div>
-                      </div>
-                    </div>
-                  </div>
+                {/* Right side - Stamp */}
+                <g transform="translate(120, 15) rotate(3)">
+                  <rect
+                    x="0"
+                    y="0"
+                    width="20"
+                    height="20"
+                    fill="url(#stamp-gradient)"
+                    rx="1"
+                  />
+                  <text
+                    x="10"
+                    y="6"
+                    fontSize="3"
+                    fill="white"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                  >
+                    SWISS
+                  </text>
+                  <text
+                    x="10"
+                    y="12"
+                    fontSize="5"
+                    fill="white"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                  >
+                    POST
+                  </text>
+                  <text
+                    x="10"
+                    y="17"
+                    fontSize="3"
+                    fill="white"
+                    textAnchor="middle"
+                  >
+                    CHF 1.20
+                  </text>
+                </g>
 
-                  {/* Recipient Address */}
-                  <div className="flex-1 flex items-center">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800 mb-1">
-                        {recipientName}
-                      </p>
-                      <p className="text-xs text-gray-700 whitespace-pre-line">
-                        {recipientAddress}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                {/* Gradient definition for stamp */}
+                <defs>
+                  <linearGradient id="stamp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#EF4444" />
+                    <stop offset="100%" stopColor="#DC2626" />
+                  </linearGradient>
+                </defs>
+
+                {/* Recipient Address */}
+                <text
+                  x="80"
+                  y="55"
+                  fontSize="4"
+                  fill="#1F2937"
+                  fontWeight="600"
+                  fontFamily="sans-serif"
+                >
+                  {recipientName}
+                </text>
+
+                {recipientAddress.split('\n').map((line, index) => (
+                  <text
+                    key={index}
+                    x="80"
+                    y={62 + index * 4}
+                    fontSize="3.5"
+                    fill="#374151"
+                    fontFamily="sans-serif"
+                  >
+                    {line}
+                  </text>
+                ))}
+              </svg>
 
               {/* QR Code on Back */}
               {designId && (
