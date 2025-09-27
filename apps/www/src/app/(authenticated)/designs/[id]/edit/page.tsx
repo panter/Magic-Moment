@@ -46,16 +46,17 @@ export default function EditDesignPage() {
     "original" | "variant"
   >("original");
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null
+    null,
   );
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [locationName, setLocationName] = useState<string | null>(null);
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
   const [generatingMessage, setGeneratingMessage] = useState(false);
+  const [backgroundGenerating, setBackgroundGenerating] = useState(false);
   const [generatingVariant, setGeneratingVariant] = useState(false);
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [variantPrompt, setVariantPrompt] = useState("");
@@ -90,7 +91,7 @@ export default function EditDesignPage() {
         }
       }, 1000); // Auto-save after 1 second of no changes
     },
-    [id]
+    [id],
   );
 
   // Update overlays with auto-save
@@ -99,7 +100,7 @@ export default function EditDesignPage() {
       setOverlays(newOverlays);
       debouncedAutoSave(newOverlays);
     },
-    [debouncedAutoSave]
+    [debouncedAutoSave],
   );
 
   useEffect(() => {
@@ -140,7 +141,7 @@ export default function EditDesignPage() {
           // Check if current frontImage is a variant
           const currentIsVariant = design.imageVariantsData.find(
             (v: any) =>
-              v.id === design.frontImage?.id || v.id === design.frontImage
+              v.id === design.frontImage?.id || v.id === design.frontImage,
           );
           if (currentIsVariant) {
             setSelectedImageType("variant");
@@ -164,14 +165,28 @@ export default function EditDesignPage() {
     loadDesign();
   }, [id]);
 
-  const generateMessage = async () => {
-    setGeneratingMessage(true);
+  // Helper function to trigger automatic message generation in the background
+  const triggerBackgroundGeneration = () => {
+    // Only generate if we don't already have a message
+    if (!message && !generatingMessage && !backgroundGenerating) {
+      console.log("Triggering automatic message generation in background");
+      setBackgroundGenerating(true);
+      setTimeout(() => {
+        generateMessage(false); // false = don't show loading state
+      }, 500);
+    }
+  };
+
+  const generateMessage = async (showLoading = true) => {
+    if (showLoading) {
+      setGeneratingMessage(true);
+    }
     setError("");
     try {
       const result = await generatePostcardMessage(
         id,
         message,
-        imageFile ? undefined : currentImageId || undefined
+        imageFile ? undefined : currentImageId || undefined,
       );
 
       // Save the generated message immediately
@@ -185,13 +200,25 @@ export default function EditDesignPage() {
 
       setMessage(result.message);
 
+      // Update description if it was generated
+      if (result.description && !description) {
+        setDescription(result.description);
+      }
+
       // Refresh the page to show the updated data
       router.refresh();
     } catch (err) {
       console.error("Error generating message:", err);
-      setError("Failed to generate message");
+      // Don't show error if this was a background generation
+      if (showLoading) {
+        setError("Failed to generate message");
+      }
     } finally {
-      setGeneratingMessage(false);
+      if (showLoading) {
+        setGeneratingMessage(false);
+      } else {
+        setBackgroundGenerating(false);
+      }
     }
   };
 
@@ -251,7 +278,7 @@ export default function EditDesignPage() {
 
           // Upload directly to Cloudinary
           const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
-            setUploadProgress(progress)
+            setUploadProgress(progress),
           );
 
           // Save URL to backend
@@ -273,6 +300,9 @@ export default function EditDesignPage() {
           setImageOriginalId(imageId);
           setImageOriginalUrl(reader.result as string);
           setImageFile(null); // Clear the file since it's been uploaded
+
+          // Automatically generate message and description in the background
+          triggerBackgroundGeneration();
         } catch (err) {
           console.error("Failed to upload image:", err);
           setError("Failed to upload image");
@@ -308,7 +338,7 @@ export default function EditDesignPage() {
 
         // Upload directly to Cloudinary
         const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
-          setUploadProgress(progress)
+          setUploadProgress(progress),
         );
 
         // Save URL to backend
@@ -327,6 +357,13 @@ export default function EditDesignPage() {
 
         setVideoUrl(uploadedVideo.url);
         setVideoFile(null); // Clear the file since it's been uploaded
+
+        // If video has a thumbnail, set it as the current image and generate message
+        if (uploadedVideo.thumbnailUrl) {
+          // The thumbnail from video extraction should already be saved as an image
+          // Generate message based on the video thumbnail
+          triggerBackgroundGeneration();
+        }
       } catch (err) {
         console.error("Failed to upload video:", err);
         setError("Failed to upload video");
@@ -344,7 +381,7 @@ export default function EditDesignPage() {
 
   const handleImageSelection = (
     type: "original" | "variant",
-    variantId?: string
+    variantId?: string,
   ) => {
     setSelectedImageType(type);
 
@@ -481,7 +518,9 @@ export default function EditDesignPage() {
       recipientName,
       recipientAddress,
     });
-    alert("Postcard sent! (Not actually sent - functionality to be implemented)");
+    alert(
+      "Postcard sent! (Not actually sent - functionality to be implemented)",
+    );
   };
 
   return (
@@ -497,16 +536,20 @@ export default function EditDesignPage() {
                 className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => setCurrentStep(1)}
               >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 1
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
+                    currentStep >= 1
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
                   1
                 </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 1 ? "text-gray-900" : "text-gray-500"
-                }`}>
+                <span
+                  className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
+                    currentStep === 1 ? "text-gray-900" : "text-gray-500"
+                  }`}
+                >
                   <span className="hidden sm:inline">Create</span>
                   <span className="sm:hidden">Upload</span>
                 </span>
@@ -514,9 +557,11 @@ export default function EditDesignPage() {
 
               {/* Line between steps - Shorter on mobile */}
               <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
-                <div className={`h-0.5 sm:h-1 rounded ${
-                  currentStep >= 2 ? "bg-yellow-500" : "bg-gray-200"
-                }`}></div>
+                <div
+                  className={`h-0.5 sm:h-1 rounded ${
+                    currentStep >= 2 ? "bg-yellow-500" : "bg-gray-200"
+                  }`}
+                ></div>
               </div>
 
               {/* Step 2 */}
@@ -524,25 +569,31 @@ export default function EditDesignPage() {
                 className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => currentStep >= 2 && setCurrentStep(2)}
               >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 2
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
+                    currentStep >= 2
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
                   2
                 </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 2 ? "text-gray-900" : "text-gray-500"
-                }`}>
+                <span
+                  className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
+                    currentStep === 2 ? "text-gray-900" : "text-gray-500"
+                  }`}
+                >
                   Edit
                 </span>
               </div>
 
               {/* Line between steps - Shorter on mobile */}
               <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
-                <div className={`h-0.5 sm:h-1 rounded ${
-                  currentStep >= 3 ? "bg-yellow-500" : "bg-gray-200"
-                }`}></div>
+                <div
+                  className={`h-0.5 sm:h-1 rounded ${
+                    currentStep >= 3 ? "bg-yellow-500" : "bg-gray-200"
+                  }`}
+                ></div>
               </div>
 
               {/* Step 3 */}
@@ -550,16 +601,20 @@ export default function EditDesignPage() {
                 className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => currentStep >= 3 && setCurrentStep(3)}
               >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 3
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
+                    currentStep >= 3
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
                   3
                 </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 3 ? "text-gray-900" : "text-gray-500"
-                }`}>
+                <span
+                  className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
+                    currentStep === 3 ? "text-gray-900" : "text-gray-500"
+                  }`}
+                >
                   Send
                 </span>
               </div>
@@ -600,7 +655,6 @@ export default function EditDesignPage() {
 
       {/* Main Content Area - Adjusted padding for sticky nav */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-
         {/* Content based on current step */}
         {currentStep === 1 && (
           // Step 1: Create/Upload
@@ -661,13 +715,26 @@ export default function EditDesignPage() {
           <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
             {/* Preview Section - Collapsible on mobile, sticky on desktop */}
             <div className="w-full lg:max-w-md lg:order-2">
-              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
+              <details
+                className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden"
+                open
+              >
                 <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
                   <h2 className="text-base font-semibold text-gray-900">
                     Preview
                   </h2>
-                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-500 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </summary>
                 <div className="p-4">
@@ -899,13 +966,26 @@ export default function EditDesignPage() {
           <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
             {/* Preview Section - Collapsible on mobile, sticky on desktop */}
             <div className="w-full lg:max-w-md lg:order-2">
-              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
+              <details
+                className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden"
+                open
+              >
                 <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
                   <h2 className="text-base font-semibold text-gray-900">
                     Preview
                   </h2>
-                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5 text-gray-500 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </summary>
                 <div className="p-4">
@@ -978,14 +1058,21 @@ export default function EditDesignPage() {
                     </label>
                     <Button
                       type="button"
-                      onClick={generateMessage}
+                      onClick={() => generateMessage(true)}
                       variant="secondary"
                       size="sm"
-                      disabled={loading || generatingMessage}
+                      disabled={
+                        loading || generatingMessage || backgroundGenerating
+                      }
                       loading={generatingMessage}
                     >
                       {generatingMessage ? "Generating..." : "✨ Generate"}
                     </Button>
+                    {backgroundGenerating && (
+                      <span className="text-xs text-yellow-600 animate-pulse">
+                        Auto-generating...
+                      </span>
+                    )}
                   </div>
                   <span
                     className={`text-sm ${
