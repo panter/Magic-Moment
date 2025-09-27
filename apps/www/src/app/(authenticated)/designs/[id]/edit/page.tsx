@@ -486,76 +486,78 @@ export default function EditDesignPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            <div className="flex items-center flex-1">
+      {/* Sticky Step Navigation - Always visible on mobile */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-5">
+          <div className="flex items-center justify-between">
+            {/* Step indicators - More compact on mobile */}
+            <div className="flex items-center flex-1 gap-2 sm:gap-4">
               {/* Step 1 */}
               <div
-                className={`flex items-center cursor-pointer`}
+                className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => setCurrentStep(1)}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
                   currentStep >= 1
                     ? "bg-yellow-500 text-white"
                     : "bg-gray-200 text-gray-500"
                 }`}>
                   1
                 </div>
-                <span className={`ml-2 font-medium ${
+                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
                   currentStep === 1 ? "text-gray-900" : "text-gray-500"
                 }`}>
-                  Create
+                  <span className="hidden sm:inline">Create</span>
+                  <span className="sm:hidden">Upload</span>
                 </span>
               </div>
 
-              {/* Line between steps */}
-              <div className="flex-1 mx-4">
-                <div className={`h-1 rounded ${
+              {/* Line between steps - Shorter on mobile */}
+              <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
+                <div className={`h-0.5 sm:h-1 rounded ${
                   currentStep >= 2 ? "bg-yellow-500" : "bg-gray-200"
                 }`}></div>
               </div>
 
               {/* Step 2 */}
               <div
-                className={`flex items-center cursor-pointer`}
+                className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => currentStep >= 2 && setCurrentStep(2)}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
                   currentStep >= 2
                     ? "bg-yellow-500 text-white"
                     : "bg-gray-200 text-gray-500"
                 }`}>
                   2
                 </div>
-                <span className={`ml-2 font-medium ${
+                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
                   currentStep === 2 ? "text-gray-900" : "text-gray-500"
                 }`}>
                   Edit
                 </span>
               </div>
 
-              {/* Line between steps */}
-              <div className="flex-1 mx-4">
-                <div className={`h-1 rounded ${
+              {/* Line between steps - Shorter on mobile */}
+              <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
+                <div className={`h-0.5 sm:h-1 rounded ${
                   currentStep >= 3 ? "bg-yellow-500" : "bg-gray-200"
                 }`}></div>
               </div>
 
               {/* Step 3 */}
               <div
-                className={`flex items-center cursor-pointer`}
+                className={`flex items-center cursor-pointer min-w-0`}
                 onClick={() => currentStep >= 3 && setCurrentStep(3)}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
                   currentStep >= 3
                     ? "bg-yellow-500 text-white"
                     : "bg-gray-200 text-gray-500"
                 }`}>
                   3
                 </div>
-                <span className={`ml-2 font-medium ${
+                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
                   currentStep === 3 ? "text-gray-900" : "text-gray-500"
                 }`}>
                   Send
@@ -563,15 +565,15 @@ export default function EditDesignPage() {
               </div>
             </div>
 
-            {/* Preview Link */}
+            {/* Preview Link - Smaller on mobile */}
             <a
               href={`/designs/${id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-8 inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="ml-2 sm:ml-8 inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
             >
               <svg
-                className="w-4 h-4"
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -589,20 +591,25 @@ export default function EditDesignPage() {
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              Preview
+              <span className="hidden sm:inline">Preview</span>
+              <span className="sm:hidden">View</span>
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Main Content Area - Adjusted padding for sticky nav */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
 
         {/* Content based on current step */}
         {currentStep === 1 && (
           // Step 1: Create/Upload
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Step 1: Upload Your Image
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                 Start by uploading an image or video for your postcard
               </p>
 
@@ -633,13 +640,14 @@ export default function EditDesignPage() {
                 </div>
               )}
 
-              <div className="mt-8 flex justify-end">
+              <div className="mt-6 sm:mt-8 flex justify-end">
                 <Button
                   type="button"
                   onClick={() => setCurrentStep(2)}
                   variant="primary"
                   size="lg"
                   disabled={!imagePreview && !videoPreview}
+                  className="w-full sm:w-auto"
                 >
                   Next: Edit Content →
                 </Button>
@@ -650,14 +658,45 @@ export default function EditDesignPage() {
 
         {currentStep === 2 && (
           // Step 2: Edit Content
-          <div className="lg:flex lg:gap-8">
-            {/* Preview Section - Shows on top on mobile, right side on desktop */}
-            <div className="w-full lg:max-w-md lg:order-2 mb-8 lg:mb-0">
-              <div className="lg:sticky lg:top-8 bg-white rounded-2xl shadow-xl p-6">
+          <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
+            {/* Preview Section - Collapsible on mobile, sticky on desktop */}
+            <div className="w-full lg:max-w-md lg:order-2">
+              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
+                <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <h2 className="text-base font-semibold text-gray-900">
+                    Preview
+                  </h2>
+                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="p-4">
+                  <PostcardPreview
+                    frontImage={imagePreview}
+                    message={message || "Your message will appear here..."}
+                    recipientName={recipientName || "Recipient Name"}
+                    recipientAddress={recipientAddress || "Recipient Address"}
+                    designId={id}
+                    overlays={overlays}
+                    selectedOverlayId={selectedOverlayId}
+                    onOverlayUpdate={(overlayId, updates) => {
+                      const updatedOverlays = overlays.map((overlay) =>
+                        overlay.id === overlayId
+                          ? { ...overlay, ...updates }
+                          : overlay,
+                      );
+                      updateOverlaysWithSave(updatedOverlays);
+                    }}
+                    onOverlaySelect={setSelectedOverlayId}
+                  />
+                </div>
+              </details>
+
+              {/* Desktop preview */}
+              <div className="hidden lg:block lg:sticky lg:top-24 bg-white rounded-2xl shadow-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Preview
                 </h2>
-
                 <PostcardPreview
                   frontImage={imagePreview}
                   message={message || "Your message will appear here..."}
@@ -680,11 +719,11 @@ export default function EditDesignPage() {
             </div>
 
             {/* Edit Content Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 lg:order-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 flex-1 lg:order-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Step 2: Customize Your Postcard
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                 Enhance your postcard with variants and overlays
               </p>
 
@@ -831,13 +870,13 @@ export default function EditDesignPage() {
                 </TabPanel>
               </Tabs>
 
-              <div className="flex gap-4 mt-6">
+              <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-6">
                 <Button
                   type="button"
                   onClick={() => setCurrentStep(1)}
                   variant="secondary"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                 >
                   ← Back
                 </Button>
@@ -846,9 +885,9 @@ export default function EditDesignPage() {
                   onClick={() => setCurrentStep(3)}
                   variant="primary"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                 >
-                  Next: Add Message →
+                  Next: Message →
                 </Button>
               </div>
             </div>
@@ -857,14 +896,45 @@ export default function EditDesignPage() {
 
         {currentStep === 3 && (
           // Step 3: Message & Recipient
-          <div className="lg:flex lg:gap-8">
-            {/* Preview Section */}
-            <div className="w-full lg:max-w-md lg:order-2 mb-8 lg:mb-0">
-              <div className="lg:sticky lg:top-8 bg-white rounded-2xl shadow-xl p-6">
+          <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
+            {/* Preview Section - Collapsible on mobile, sticky on desktop */}
+            <div className="w-full lg:max-w-md lg:order-2">
+              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
+                <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <h2 className="text-base font-semibold text-gray-900">
+                    Preview
+                  </h2>
+                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="p-4">
+                  <PostcardPreview
+                    frontImage={imagePreview}
+                    message={message || "Your message will appear here..."}
+                    recipientName={recipientName || "Recipient Name"}
+                    recipientAddress={recipientAddress || "Recipient Address"}
+                    designId={id}
+                    overlays={overlays}
+                    selectedOverlayId={selectedOverlayId}
+                    onOverlayUpdate={(overlayId, updates) => {
+                      const updatedOverlays = overlays.map((overlay) =>
+                        overlay.id === overlayId
+                          ? { ...overlay, ...updates }
+                          : overlay,
+                      );
+                      updateOverlaysWithSave(updatedOverlays);
+                    }}
+                    onOverlaySelect={setSelectedOverlayId}
+                  />
+                </div>
+              </details>
+
+              {/* Desktop preview */}
+              <div className="hidden lg:block lg:sticky lg:top-24 bg-white rounded-2xl shadow-xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Preview
                 </h2>
-
                 <PostcardPreview
                   frontImage={imagePreview}
                   message={message || "Your message will appear here..."}
@@ -887,11 +957,11 @@ export default function EditDesignPage() {
             </div>
 
             {/* Message & Recipient Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 lg:order-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 flex-1 lg:order-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Step 3: Message & Recipient
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                 Add your personal message and recipient details
               </p>
 
@@ -978,13 +1048,13 @@ export default function EditDesignPage() {
                 />
               </div>
 
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-2 sm:gap-4 mt-6 sm:mt-8">
                 <Button
                   type="button"
                   onClick={() => setCurrentStep(2)}
                   variant="secondary"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                 >
                   ← Back
                 </Button>
@@ -993,10 +1063,10 @@ export default function EditDesignPage() {
                   onClick={handleSendPostcard}
                   variant="primary"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 text-sm sm:text-base"
                   disabled={!message || !recipientName || !recipientAddress}
                 >
-                  Send Postcard 📮
+                  Send 📮
                 </Button>
               </div>
             </div>
