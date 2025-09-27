@@ -10,3 +10,4 @@ export { OverlayEditor } from "./OverlayEditor";
 export type { Overlay } from "./OverlayEditor";
 export { Tabs, TabPanel } from "./tabs";
 export type { Tab } from "./tabs";
+export { Map } from "./map";
