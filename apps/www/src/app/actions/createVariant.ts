@@ -232,17 +232,14 @@ export async function createVariant(designId: string, customPrompt?: string) {
       image: imageFile,
       prompt: postcardPrompt,
       n: 1,
+      output_format: "jpeg",
+
       size: "1536x1024",
     });
 
-    const imageUrl = editResponse.data?.[0]?.url;
-    if (!imageUrl) throw new Error("No image returned from edit endpoint");
+    console.log("Edit response:", editResponse);
 
-    // Fetch the image from the URL
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) throw new Error("Failed to fetch generated image");
-    const arrayBuffer = await imageResponse.arrayBuffer();
-    const b64 = Buffer.from(arrayBuffer).toString("base64");
+    const b64 = await getBase64Image(editResponse);
 
     const buffer = Buffer.from(b64, "base64");
     console.log("Generated variant image buffer size:", buffer.length);
@@ -285,4 +282,23 @@ export async function createVariant(designId: string, customPrompt?: string) {
     );
     throw new Error("Failed to generate variant image");
   }
+}
+async function getBase64Image(
+  editResponse: OpenAI.Images.ImagesResponse & { _request_id?: string | null }
+) {
+  const theImage = editResponse.data?.[0];
+  if (!theImage) throw new Error("No image returned from edit endpoint");
+  if (theImage.b64_json) {
+    return theImage.b64_json;
+  }
+
+  const imageUrl = theImage.url;
+  if (!imageUrl) throw new Error("No image returned from edit endpoint");
+
+  // Fetch the image from the URL
+  const imageResponse = await fetch(imageUrl);
+  if (!imageResponse.ok) throw new Error("Failed to fetch generated image");
+  const arrayBuffer = await imageResponse.arrayBuffer();
+  const b64 = Buffer.from(arrayBuffer).toString("base64");
+  return b64;
 }
