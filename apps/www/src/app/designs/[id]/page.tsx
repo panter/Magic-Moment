@@ -173,16 +173,6 @@ export default function DesignLandingPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Category Badge */}
-            {design.category && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Category:</span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 capitalize">
-                  {design.category}
-                </span>
-              </div>
-            )}
-
             {/* Location Map */}
             {design.latitude && design.longitude && (
               <div className="space-y-3">

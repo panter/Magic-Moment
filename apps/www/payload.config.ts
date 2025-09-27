@@ -127,17 +127,6 @@ export default buildConfig({
           type: "textarea",
         },
         {
-          name: "category",
-          type: "select",
-          options: [
-            { label: "Holiday", value: "holiday" },
-            { label: "Birthday", value: "birthday" },
-            { label: "Thank You", value: "thankyou" },
-            { label: "Greeting", value: "greeting" },
-            { label: "Travel", value: "travel" },
-          ],
-        },
-        {
           name: "templateImage",
           type: "upload",
           relationTo: "media",

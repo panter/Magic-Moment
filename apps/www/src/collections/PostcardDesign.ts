@@ -221,19 +221,6 @@ export const PostcardDesign: CollectionConfig = {
       ],
     },
     {
-      name: "category",
-      type: "select",
-      options: [
-        { label: "Holiday", value: "holiday" },
-        { label: "Birthday", value: "birthday" },
-        { label: "Thank You", value: "thankyou" },
-        { label: "Greeting", value: "greeting" },
-        { label: "Travel", value: "travel" },
-        { label: "Custom", value: "custom" },
-      ],
-      defaultValue: "custom",
-    },
-    {
       name: "isPublic",
       type: "checkbox",
       defaultValue: false,

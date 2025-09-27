@@ -75,10 +75,7 @@ export default function DesignCard({ design }: { design: any }) {
             {design.description}
           </p>
         )}
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-          <span className="bg-gray-100 px-2 py-1 rounded-full capitalize">
-            {design.category}
-          </span>
+        <div className="text-xs text-gray-500 mb-3 text-right">
           <span>{new Date(design.createdAt).toLocaleDateString()}</span>
         </div>
 
