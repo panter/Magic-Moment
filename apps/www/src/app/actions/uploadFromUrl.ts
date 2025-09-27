@@ -3,6 +3,7 @@
 import { getPayload } from "payload";
 import configPromise from "../../../payload.config";
 import { cookies } from "next/headers";
+import { convertHeicToJpegServerSide } from "@/lib/image-conversion";
 
 export interface UploadFromUrlInput {
   url: string;
@@ -88,6 +89,12 @@ export async function uploadFromUrl(input: UploadFromUrlInput): Promise<any> {
       }
 
       mediaBuffer = Buffer.from(await imageResponse.arrayBuffer());
+
+      // Convert HEIC/HEIF to JPEG if needed
+      const converted = await convertHeicToJpegServerSide(mediaBuffer, mediaFilename, mediaMimeType);
+      mediaBuffer = converted.buffer;
+      mediaMimeType = converted.mimetype;
+      mediaFilename = converted.filename;
 
       // Create media entry
       const media = await payload.create({

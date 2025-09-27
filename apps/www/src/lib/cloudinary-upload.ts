@@ -21,6 +21,7 @@ export interface DirectUploadResult {
 
 async function getUploadSignature(
   resourceType: "image" | "video" = "image",
+  needsFormatConversion: boolean = false,
 ): Promise<{
   signature: string;
   timestamp: number;
@@ -32,7 +33,7 @@ async function getUploadSignature(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ resourceType }),
+    body: JSON.stringify({ resourceType, needsFormatConversion }),
   });
 
   if (!response.ok) {
@@ -49,9 +50,15 @@ export async function uploadToCloudinary(
   const isVideo = file.type.startsWith("video/");
   const resourceType = isVideo ? "video" : "image";
 
+  // Check if it's a HEIC file
+  const isHeic = file.type.includes("heic") ||
+                 file.type.includes("heif") ||
+                 file.name.toLowerCase().endsWith(".heic") ||
+                 file.name.toLowerCase().endsWith(".heif");
+
   // Get signature from server
   const { signature, timestamp, cloudName, apiKey } =
-    await getUploadSignature(resourceType);
+    await getUploadSignature(resourceType, isHeic && !isVideo);
 
   // Prepare form data
   const formData = new FormData();
@@ -60,6 +67,13 @@ export async function uploadToCloudinary(
   formData.append("timestamp", timestamp.toString());
   formData.append("signature", signature);
   formData.append("folder", `magic-moment/${isVideo ? "videos" : "images"}`);
+
+  // Add format conversion for HEIC files
+  if (isHeic && !isVideo) {
+    console.log("HEIC file detected, requesting JPEG conversion from Cloudinary");
+    formData.append("format", "jpg");
+    // Note: quality parameter doesn't need to be in the signature
+  }
 
   // Add eager transformation for video thumbnails
   if (isVideo) {
@@ -95,6 +109,11 @@ export async function uploadToCloudinary(
             /\.(mp4|mov|avi|webm)$/i,
             ".jpg",
           );
+        }
+
+        // For HEIC files, the response URL will be the converted JPEG
+        if (isHeic && !isVideo) {
+          console.log("HEIC converted to JPEG, URL:", response.secure_url);
         }
 
         resolve({
