@@ -184,9 +184,7 @@ export function PostcardPreview({
                   {overlays.length > 0 && (
                     <svg
                       ref={svgRef}
-                      className={`absolute inset-0 w-full h-full ${
-                        onOverlayUpdate ? "" : "pointer-events-none"
-                      }`}
+                      className={`absolute inset-0 w-full h-full ${onOverlayUpdate ? "" : "pointer-events-none"}`}
                       viewBox="0 0 100 100"
                       preserveAspectRatio="xMidYMid slice"
                       style={{
@@ -233,8 +231,8 @@ export function PostcardPreview({
                                 overlay.textAlign === "left"
                                   ? "start"
                                   : overlay.textAlign === "right"
-                                  ? "end"
-                                  : "middle"
+                                    ? "end"
+                                    : "middle"
                               }
                               dominantBaseline="middle"
                               transform={`rotate(${overlay.rotation}, ${displayX}, ${displayY})`}
@@ -262,7 +260,7 @@ export function PostcardPreview({
                                 // Then apply word wrapping to each manual line
                                 const maxCharsPerLine = Math.max(
                                   8,
-                                  Math.floor(45 / (overlay.fontSize / 24))
+                                  Math.floor(45 / (overlay.fontSize / 24)),
                                 );
 
                                 manualLines.forEach((line) => {
@@ -315,8 +313,8 @@ export function PostcardPreview({
                                       overlay.textAlign === "left"
                                         ? "start"
                                         : overlay.textAlign === "right"
-                                        ? "end"
-                                        : "middle"
+                                          ? "end"
+                                          : "middle"
                                     }
                                   >
                                     {line}
@@ -340,7 +338,7 @@ export function PostcardPreview({
               {designId && (
                 <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
                   <QRCodeSVG
-                    value={`${rootUrl}/designs/${designId}`}
+                    value={`${rootUrl || process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"}/designs/${designId}`}
                     size={48}
                     level="M"
                     includeMargin={false}
@@ -406,7 +404,7 @@ export function PostcardPreview({
               {designId && (
                 <div className="absolute bottom-2 left-2 bg-white p-1.5 rounded-sm shadow-lg">
                   <QRCodeSVG
-                    value={`${rootUrl}/designs/${designId}`}
+                    value={`${rootUrl || process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"}/designs/${designId}`}
                     size={48}
                     level="M"
                     includeMargin={false}
