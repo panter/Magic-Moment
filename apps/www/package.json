@@ -38,8 +38,7 @@
   },
   "optionalDependencies": {
     "@img/sharp-linux-x64": "0.34.4",
-    "@img/sharp-linuxmusl-x64": "0.34.4",
-    "@img/sharp-wasm": "0.34.4"
+    "@img/sharp-linuxmusl-x64": "0.34.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
