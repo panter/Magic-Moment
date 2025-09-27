@@ -14,7 +14,7 @@ interface PostcardPreviewProps {
   overlays?: Overlay[];
   onOverlayUpdate?: (
     overlayId: string,
-    updates: { x: number; y: number }
+    updates: { x: number; y: number },
   ) => void;
   selectedOverlayId?: string | null;
   onOverlaySelect?: (overlayId: string) => void;
@@ -224,17 +224,17 @@ export function PostcardPreview({
                             <text
                               x={`${displayX}%`}
                               y={`${displayY}%`}
-                              fontSize={`${overlay.fontSize / 4}px`}
+                              fontSize={overlay.fontSize / 5}
                               fontFamily={fontFamilyMap[overlay.fontFamily]}
                               fill={overlay.color}
                               stroke={overlay.strokeColor}
-                              strokeWidth={overlay.strokeWidth}
+                              strokeWidth={overlay.strokeWidth / 20}
                               textAnchor={
                                 overlay.textAlign === "left"
                                   ? "start"
                                   : overlay.textAlign === "right"
-                                  ? "end"
-                                  : "middle"
+                                    ? "end"
+                                    : "middle"
                               }
                               dominantBaseline="middle"
                               transform={`rotate(${overlay.rotation}, ${displayX}, ${displayY})`}
@@ -262,7 +262,7 @@ export function PostcardPreview({
                                 // Then apply word wrapping to each manual line
                                 const maxCharsPerLine = Math.max(
                                   8,
-                                  Math.floor(45 / (overlay.fontSize / 24))
+                                  Math.floor(45 / (overlay.fontSize / 24)),
                                 );
 
                                 manualLines.forEach((line) => {
@@ -298,7 +298,7 @@ export function PostcardPreview({
                                 }
 
                                 // Multiple lines - use tspan elements
-                                const lineHeight = overlay.fontSize / 3.5;
+                                const lineHeight = overlay.fontSize / 35;
                                 const startY =
                                   (-(lines.length - 1) * lineHeight) / 2;
 
@@ -306,17 +306,13 @@ export function PostcardPreview({
                                   <tspan
                                     key={i}
                                     x={`${displayX}%`}
-                                    dy={
-                                      i === 0
-                                        ? `${startY}px`
-                                        : `${lineHeight}px`
-                                    }
+                                    dy={i === 0 ? startY : lineHeight}
                                     textAnchor={
                                       overlay.textAlign === "left"
                                         ? "start"
                                         : overlay.textAlign === "right"
-                                        ? "end"
-                                        : "middle"
+                                          ? "end"
+                                          : "middle"
                                     }
                                   >
                                     {line}
