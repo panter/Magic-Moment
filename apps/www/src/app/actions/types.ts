@@ -15,13 +15,6 @@ export interface OverlayData {
 export interface CreateDesignInput {
   name: string;
   description?: string;
-  category:
-    | "holiday"
-    | "birthday"
-    | "thankyou"
-    | "greeting"
-    | "travel"
-    | "custom";
   imageOriginal: string;
   frontImage?: string;
   backgroundColor?: string;
@@ -52,13 +45,6 @@ export interface CreateDesignInput {
 export interface UpdateDesignInput {
   name?: string;
   description?: string;
-  category?:
-    | "holiday"
-    | "birthday"
-    | "thankyou"
-    | "greeting"
-    | "travel"
-    | "custom";
   backgroundColor?: string;
   textColor?: string;
   font?: "sans" | "serif" | "handwritten" | "decorative";

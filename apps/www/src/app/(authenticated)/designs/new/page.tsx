@@ -101,7 +101,6 @@ export default function NewDesignPage() {
       const designData: CreateDesignInput = {
         name: automaticName,
         description: "", // Will be generated automatically
-        category: "custom",
         imageOriginal: uploadedImage.id,
         frontImage: uploadedImage.id,
         backgroundColor: "#ffffff",
