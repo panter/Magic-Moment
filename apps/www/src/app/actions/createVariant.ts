@@ -7,6 +7,7 @@ import OpenAI from "openai";
 import { toFile } from "openai/uploads";
 import { describeImage } from "@/lib/image-analysis";
 import { getSharp } from "@/lib/sharp";
+import { NEXT_PUBLIC_URL } from "@/lib/constants";
 
 export async function createVariant(designId: string, customPrompt?: string) {
   console.log("=== Starting variant creation for design:", designId);
@@ -152,8 +153,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
         // Get the URL from the media document
         const urlFromDoc = mediaDoc.url;
         if (urlFromDoc) {
-          const baseUrl =
-            process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+          const baseUrl = NEXT_PUBLIC_URL;
           const fullUrl =
             urlFromDoc.startsWith("http://") ||
             urlFromDoc.startsWith("https://")

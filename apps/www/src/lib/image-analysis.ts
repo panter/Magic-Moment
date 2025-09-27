@@ -144,7 +144,7 @@ async function getImageBuffer(
   }
 
   // Construct the full URL
-  const baseUrl = NEXT_PUBLIC_URL || "http://localhost:3000";
+  const baseUrl = NEXT_PUBLIC_URL;
   const fullUrl =
     urlFromDoc.startsWith("http://") || urlFromDoc.startsWith("https://")
       ? urlFromDoc
