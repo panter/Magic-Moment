@@ -150,20 +150,23 @@ export function PostcardPreview({
 
   return (
     <div className={`${className}`}>
-      <div className="relative w-full max-w-[420px] mx-auto">
-        <div
-          className="preserve-3d transition-transform duration-700"
-          style={{
-            transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            transformStyle: "preserve-3d",
-            position: "relative",
-            width: "100%",
-            aspectRatio: "148 / 105",
-          }}
-        >
+      <div className="relative w-full max-w-[420px] flex items-start gap-2">
+        {/* 3D Perspective Container */}
+        <div className="flex-1" style={{ perspective: "1000px" }}>
+          <div
+            className="preserve-3d transition-transform duration-700"
+            style={{
+              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+              transformStyle: "preserve-3d",
+              position: "relative",
+              width: "100%",
+              height: "auto",
+              aspectRatio: "148 / 105",
+            }}
+          >
           {/* Front Side */}
           <div
-            className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+            className="absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
             style={{
               backfaceVisibility: "hidden",
             }}
@@ -342,7 +345,7 @@ export function PostcardPreview({
 
           {/* Back Side */}
           <div
-            className="absolute inset-0 backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+            className="absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
             style={{
               backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
@@ -409,16 +412,30 @@ export function PostcardPreview({
             )}
           </div>
         </div>
+        </div>
 
-        {/* Flip Button */}
-        <div className="mt-6 text-center">
-          <Button
+        {/* Flip Button - round button with icon */}
+        <div className="flex-shrink-0" style={{ paddingTop: "calc(105 / 148 * 50% - 20px)" }}>
+          <button
             onClick={() => setIsFlipped(!isFlipped)}
-            variant="secondary"
-            size="sm"
+            className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center shadow-md"
+            title={isFlipped ? "Show Front" : "Show Back"}
+            type="button"
           >
-            {isFlipped ? "Show Front" : "Show Back"}
-          </Button>
+            <svg
+              className="w-5 h-5 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
