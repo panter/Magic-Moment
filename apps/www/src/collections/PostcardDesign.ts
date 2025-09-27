@@ -7,14 +7,7 @@ export const PostcardDesign: CollectionConfig = {
   },
   access: {
     create: ({ req: { user } }) => !!user,
-    read: ({ req: { user } }) => {
-      if (!user) return false;
-      return {
-        createdBy: {
-          equals: user.id,
-        },
-      };
-    },
+    read: () => true,
     update: ({ req: { user } }) => {
       if (!user) return false;
       return {
@@ -68,6 +61,7 @@ export const PostcardDesign: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
+      access: {
       admin: {
         description: "The original uploaded image",
       },
