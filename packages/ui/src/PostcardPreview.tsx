@@ -179,8 +179,8 @@ export function PostcardPreview({
                 <div
                   className="relative w-full h-full cursor-pointer"
                   onClick={(e) => {
-                    // Only open lightbox if not dragging an overlay and clicked on the image itself
-                    if (!draggingOverlay && !onOverlayUpdate) {
+                    // Only open lightbox if not dragging an overlay
+                    if (!draggingOverlay) {
                       setShowLightbox(true);
                     }
                   }}
