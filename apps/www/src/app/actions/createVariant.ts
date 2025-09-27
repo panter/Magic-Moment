@@ -40,7 +40,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
   // Log the imageOriginal structure to understand what we're dealing with
   console.log(
     "Original image structure:",
-    JSON.stringify(design.imageOriginal, null, 2)
+    JSON.stringify(design.imageOriginal, null, 2),
   );
 
   // Initialize OpenAI
@@ -64,7 +64,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
     // Analyze the image
     const analysisResult = await describeImage(
       design.imageOriginal,
-      token.value
+      token.value,
     );
 
     if (needsDescription) {
@@ -182,7 +182,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
             // Keep the original image buffer for image-to-image edits
             var originalImageBuffer = jpegBuffer;
             console.log(
-              "Successfully loaded original image for variant generation"
+              "Successfully loaded original image for variant generation",
             );
           }
         }
@@ -212,7 +212,7 @@ export async function createVariant(designId: string, customPrompt?: string) {
 
     if (!originalImageDataUrl) {
       throw new Error(
-        "Original image could not be loaded for variant generation"
+        "Original image could not be loaded for variant generation",
       );
     }
     if (
@@ -278,13 +278,13 @@ export async function createVariant(designId: string, customPrompt?: string) {
     console.error("Error generating variant - full details:", error);
     console.error(
       "Error message:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw new Error("Failed to generate variant image");
   }
 }
 async function getBase64Image(
-  editResponse: OpenAI.Images.ImagesResponse & { _request_id?: string | null }
+  editResponse: OpenAI.Images.ImagesResponse & { _request_id?: string | null },
 ) {
   const theImage = editResponse.data?.[0];
   if (!theImage) throw new Error("No image returned from edit endpoint");

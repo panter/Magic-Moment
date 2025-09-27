@@ -37,6 +37,8 @@ export function PostcardPreview({
   const [isFlipped, setIsFlipped] = useState(false);
   const [draggingOverlay, setDraggingOverlay] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const backContainerRef = useRef<HTMLDivElement>(null);
+  const [backScale, setBackScale] = useState(1);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [tempPosition, setTempPosition] = useState<{
     id: string;
@@ -108,6 +110,26 @@ export function PostcardPreview({
     setDraggingOverlay(null);
     setTempPosition(null);
   };
+
+  // Monitor back container size for scaling
+  useEffect(() => {
+    if (!backContainerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        // Base size is 420px max-width, calculate scale factor
+        const scale = width / 420;
+        setBackScale(Math.min(scale, 1)); // Don't scale up beyond 1
+      }
+    });
+
+    resizeObserver.observe(backContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (draggingOverlay) {
@@ -347,120 +369,106 @@ export function PostcardPreview({
 
             {/* Back Side */}
             <div
+              ref={backContainerRef}
               className="absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
               style={{
                 backfaceVisibility: "hidden",
                 transform: "rotateY(180deg)",
               }}
             >
-              <svg
-                className="w-full h-full"
-                viewBox="0 0 148 105"
-                preserveAspectRatio="xMidYMid meet"
+              {/* Scalable HTML container for back side content */}
+              <div
+                className="relative w-full h-full"
+                style={{
+                  fontSize: `${14 * backScale}px`, // Base font size scales with container
+                }}
               >
-                {/* Left side - Message */}
-                <text
-                  x="5"
-                  y="15"
-                  fontSize="3.5"
-                  fill="#374151"
-                  fontFamily="cursive"
-                  style={{ maxWidth: "68px" }}
-                >
-                  {message.split('\n').map((line, index) => (
-                    <tspan key={index} x="5" dy={index === 0 ? 0 : 4}>
-                      {line.length > 30 ? line.substring(0, 30) + '...' : line}
-                    </tspan>
-                  ))}
-                </text>
+                <div className="absolute inset-0 flex">
+                  {/* Left side - Message */}
+                  <div className="w-1/2 p-[3%] pr-0 flex flex-col justify-between">
+                    <div
+                      className="text-gray-700 whitespace-pre-wrap break-words overflow-hidden"
+                      style={{
+                        fontFamily: "cursive",
+                        fontSize: "3.5em",
+                        lineHeight: "1.3",
+                        maxHeight: "75%",
+                      }}
+                    >
+                      {message}
+                    </div>
+                    <div
+                      className="text-gray-500"
+                      style={{
+                        fontFamily: "sans-serif",
+                        fontSize: "3em",
+                      }}
+                    >
+                      Sent with ❤️ from Switzerland
+                    </div>
+                  </div>
 
-                <text
-                  x="5"
-                  y="90"
-                  fontSize="3"
-                  fill="#6B7280"
-                  fontFamily="sans-serif"
-                >
-                  Sent with ❤️ from Switzerland
-                </text>
+                  {/* Divider line */}
+                  <div className="w-px bg-gray-300 my-[10%]"></div>
 
-                {/* Divider line */}
-                <line x1="74" y1="10" x2="74" y2="95" stroke="#D1D5DB" strokeWidth="0.5" />
+                  {/* Right side */}
+                  <div className="w-1/2 p-[3%] pl-[4%] relative">
+                    {/* Stamp */}
+                    <div
+                      className="absolute"
+                      style={{
+                        top: "10%",
+                        right: "10%",
+                        width: "13.5%",
+                        aspectRatio: "1/1",
+                        transform: "rotate(3deg)",
+                      }}
+                    >
+                      <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-600 rounded-[5%] flex flex-col items-center justify-center text-white">
+                        <div style={{ fontSize: "3em", fontWeight: "bold" }}>
+                          SWISS
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "5em",
+                            fontWeight: "bold",
+                            lineHeight: "0.8",
+                          }}
+                        >
+                          POST
+                        </div>
+                        <div style={{ fontSize: "3em", marginTop: "0.2em" }}>
+                          CHF 1.20
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Right side - Stamp */}
-                <g transform="translate(120, 15) rotate(3)">
-                  <rect
-                    x="0"
-                    y="0"
-                    width="20"
-                    height="20"
-                    fill="url(#stamp-gradient)"
-                    rx="1"
-                  />
-                  <text
-                    x="10"
-                    y="6"
-                    fontSize="3"
-                    fill="white"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    SWISS
-                  </text>
-                  <text
-                    x="10"
-                    y="12"
-                    fontSize="5"
-                    fill="white"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    POST
-                  </text>
-                  <text
-                    x="10"
-                    y="17"
-                    fontSize="3"
-                    fill="white"
-                    textAnchor="middle"
-                  >
-                    CHF 1.20
-                  </text>
-                </g>
-
-                {/* Gradient definition for stamp */}
-                <defs>
-                  <linearGradient id="stamp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#EF4444" />
-                    <stop offset="100%" stopColor="#DC2626" />
-                  </linearGradient>
-                </defs>
-
-                {/* Recipient Address */}
-                <text
-                  x="80"
-                  y="55"
-                  fontSize="4"
-                  fill="#1F2937"
-                  fontWeight="600"
-                  fontFamily="sans-serif"
-                >
-                  {recipientName}
-                </text>
-
-                {recipientAddress.split('\n').map((line, index) => (
-                  <text
-                    key={index}
-                    x="80"
-                    y={62 + index * 4}
-                    fontSize="3.5"
-                    fill="#374151"
-                    fontFamily="sans-serif"
-                  >
-                    {line}
-                  </text>
-                ))}
-              </svg>
+                    {/* Recipient Address */}
+                    <div style={{ marginTop: "45%" }}>
+                      <div
+                        className="text-gray-800 font-semibold"
+                        style={{
+                          fontFamily: "sans-serif",
+                          fontSize: "4em",
+                          marginBottom: "0.3em",
+                        }}
+                      >
+                        {recipientName}
+                      </div>
+                      <div
+                        className="text-gray-700 whitespace-pre-line"
+                        style={{
+                          fontFamily: "sans-serif",
+                          fontSize: "3.5em",
+                          lineHeight: "1.3",
+                        }}
+                      >
+                        {recipientAddress}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* QR Code on Back */}
               {designId && (

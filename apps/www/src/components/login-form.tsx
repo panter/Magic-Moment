@@ -106,7 +106,9 @@ export default function LoginForm() {
   return (
     <div className="space-y-6">
       {/* Form header with better visual distinction */}
-      <div className={`text-center pb-4 border-b-2 ${isLogin ? "border-blue-500" : "border-green-500"}`}>
+      <div
+        className={`text-center pb-4 border-b-2 ${isLogin ? "border-blue-500" : "border-green-500"}`}
+      >
         <h2 className="text-2xl font-bold text-gray-900">
           {isLogin ? "Welcome Back!" : "Create Your Account"}
         </h2>
@@ -153,7 +155,9 @@ export default function LoginForm() {
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+            <span className="px-2 bg-white text-gray-500">
+              Or continue with email
+            </span>
           </div>
         </div>
       )}

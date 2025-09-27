@@ -46,12 +46,12 @@ export default function EditDesignPage() {
     "original" | "variant"
   >("original");
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null
+    null,
   );
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [locationName, setLocationName] = useState<string | null>(null);
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [loadingDesign, setLoadingDesign] = useState(true);
@@ -90,7 +90,7 @@ export default function EditDesignPage() {
         }
       }, 1000); // Auto-save after 1 second of no changes
     },
-    [id]
+    [id],
   );
 
   // Update overlays with auto-save
@@ -99,7 +99,7 @@ export default function EditDesignPage() {
       setOverlays(newOverlays);
       debouncedAutoSave(newOverlays);
     },
-    [debouncedAutoSave]
+    [debouncedAutoSave],
   );
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function EditDesignPage() {
           // Check if current frontImage is a variant
           const currentIsVariant = design.imageVariantsData.find(
             (v: any) =>
-              v.id === design.frontImage?.id || v.id === design.frontImage
+              v.id === design.frontImage?.id || v.id === design.frontImage,
           );
           if (currentIsVariant) {
             setSelectedImageType("variant");
@@ -171,7 +171,7 @@ export default function EditDesignPage() {
       const result = await generatePostcardMessage(
         id,
         message,
-        imageFile ? undefined : currentImageId || undefined
+        imageFile ? undefined : currentImageId || undefined,
       );
 
       // Save the generated message immediately
@@ -251,7 +251,7 @@ export default function EditDesignPage() {
 
           // Upload directly to Cloudinary
           const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
-            setUploadProgress(progress)
+            setUploadProgress(progress),
           );
 
           // Save URL to backend
@@ -308,7 +308,7 @@ export default function EditDesignPage() {
 
         // Upload directly to Cloudinary
         const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
-          setUploadProgress(progress)
+          setUploadProgress(progress),
         );
 
         // Save URL to backend
@@ -344,7 +344,7 @@ export default function EditDesignPage() {
 
   const handleImageSelection = (
     type: "original" | "variant",
-    variantId?: string
+    variantId?: string,
   ) => {
     setSelectedImageType(type);
 
@@ -482,7 +482,7 @@ export default function EditDesignPage() {
       recipientAddress,
     });
     alert(
-      "Postcard sent! (Not actually sent - functionality to be implemented)"
+      "Postcard sent! (Not actually sent - functionality to be implemented)",
     );
   };
 
@@ -713,7 +713,7 @@ export default function EditDesignPage() {
                       const updatedOverlays = overlays.map((overlay) =>
                         overlay.id === overlayId
                           ? { ...overlay, ...updates }
-                          : overlay
+                          : overlay,
                       );
                       updateOverlaysWithSave(updatedOverlays);
                     }}
@@ -740,7 +740,7 @@ export default function EditDesignPage() {
                     const updatedOverlays = overlays.map((overlay) =>
                       overlay.id === overlayId
                         ? { ...overlay, ...updates }
-                        : overlay
+                        : overlay,
                     );
                     updateOverlaysWithSave(updatedOverlays);
                   }}
@@ -966,7 +966,7 @@ export default function EditDesignPage() {
                       const updatedOverlays = overlays.map((overlay) =>
                         overlay.id === overlayId
                           ? { ...overlay, ...updates }
-                          : overlay
+                          : overlay,
                       );
                       updateOverlaysWithSave(updatedOverlays);
                     }}
@@ -993,7 +993,7 @@ export default function EditDesignPage() {
                     const updatedOverlays = overlays.map((overlay) =>
                       overlay.id === overlayId
                         ? { ...overlay, ...updates }
-                        : overlay
+                        : overlay,
                     );
                     updateOverlaysWithSave(updatedOverlays);
                   }}
@@ -1039,8 +1039,8 @@ export default function EditDesignPage() {
                       message.length > MESSAGE_CHAR_LIMIT
                         ? "text-red-600 font-semibold"
                         : message.length > MESSAGE_CHAR_LIMIT * 0.9
-                        ? "text-amber-600"
-                        : "text-gray-500"
+                          ? "text-amber-600"
+                          : "text-gray-500"
                     }`}
                   >
                     {message.length}/{MESSAGE_CHAR_LIMIT}

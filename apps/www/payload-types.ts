@@ -13,53 +13,53 @@
  * via the `definition` "supportedTimezones".
  */
 export type SupportedTimezones =
-  | 'Pacific/Midway'
-  | 'Pacific/Niue'
-  | 'Pacific/Honolulu'
-  | 'Pacific/Rarotonga'
-  | 'America/Anchorage'
-  | 'Pacific/Gambier'
-  | 'America/Los_Angeles'
-  | 'America/Tijuana'
-  | 'America/Denver'
-  | 'America/Phoenix'
-  | 'America/Chicago'
-  | 'America/Guatemala'
-  | 'America/New_York'
-  | 'America/Bogota'
-  | 'America/Caracas'
-  | 'America/Santiago'
-  | 'America/Buenos_Aires'
-  | 'America/Sao_Paulo'
-  | 'Atlantic/South_Georgia'
-  | 'Atlantic/Azores'
-  | 'Atlantic/Cape_Verde'
-  | 'Europe/London'
-  | 'Europe/Berlin'
-  | 'Africa/Lagos'
-  | 'Europe/Athens'
-  | 'Africa/Cairo'
-  | 'Europe/Moscow'
-  | 'Asia/Riyadh'
-  | 'Asia/Dubai'
-  | 'Asia/Baku'
-  | 'Asia/Karachi'
-  | 'Asia/Tashkent'
-  | 'Asia/Calcutta'
-  | 'Asia/Dhaka'
-  | 'Asia/Almaty'
-  | 'Asia/Jakarta'
-  | 'Asia/Bangkok'
-  | 'Asia/Shanghai'
-  | 'Asia/Singapore'
-  | 'Asia/Tokyo'
-  | 'Asia/Seoul'
-  | 'Australia/Brisbane'
-  | 'Australia/Sydney'
-  | 'Pacific/Guam'
-  | 'Pacific/Noumea'
-  | 'Pacific/Auckland'
-  | 'Pacific/Fiji';
+  | "Pacific/Midway"
+  | "Pacific/Niue"
+  | "Pacific/Honolulu"
+  | "Pacific/Rarotonga"
+  | "America/Anchorage"
+  | "Pacific/Gambier"
+  | "America/Los_Angeles"
+  | "America/Tijuana"
+  | "America/Denver"
+  | "America/Phoenix"
+  | "America/Chicago"
+  | "America/Guatemala"
+  | "America/New_York"
+  | "America/Bogota"
+  | "America/Caracas"
+  | "America/Santiago"
+  | "America/Buenos_Aires"
+  | "America/Sao_Paulo"
+  | "Atlantic/South_Georgia"
+  | "Atlantic/Azores"
+  | "Atlantic/Cape_Verde"
+  | "Europe/London"
+  | "Europe/Berlin"
+  | "Africa/Lagos"
+  | "Europe/Athens"
+  | "Africa/Cairo"
+  | "Europe/Moscow"
+  | "Asia/Riyadh"
+  | "Asia/Dubai"
+  | "Asia/Baku"
+  | "Asia/Karachi"
+  | "Asia/Tashkent"
+  | "Asia/Calcutta"
+  | "Asia/Dhaka"
+  | "Asia/Almaty"
+  | "Asia/Jakarta"
+  | "Asia/Bangkok"
+  | "Asia/Shanghai"
+  | "Asia/Singapore"
+  | "Asia/Tokyo"
+  | "Asia/Seoul"
+  | "Australia/Brisbane"
+  | "Australia/Sydney"
+  | "Pacific/Guam"
+  | "Pacific/Noumea"
+  | "Pacific/Auckland"
+  | "Pacific/Fiji";
 
 export interface Config {
   auth: {
@@ -67,25 +67,33 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    'postcard-designs': PostcardDesign;
+    "postcard-designs": PostcardDesign;
     users: User;
     postcards: Postcard;
     media: Media;
     templates: Template;
-    'payload-locked-documents': PayloadLockedDocument;
-    'payload-preferences': PayloadPreference;
-    'payload-migrations': PayloadMigration;
+    "payload-locked-documents": PayloadLockedDocument;
+    "payload-preferences": PayloadPreference;
+    "payload-migrations": PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    'postcard-designs': PostcardDesignsSelect<false> | PostcardDesignsSelect<true>;
+    "postcard-designs":
+      | PostcardDesignsSelect<false>
+      | PostcardDesignsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     postcards: PostcardsSelect<false> | PostcardsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     templates: TemplatesSelect<false> | TemplatesSelect<true>;
-    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
-    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
-    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    "payload-locked-documents":
+      | PayloadLockedDocumentsSelect<false>
+      | PayloadLockedDocumentsSelect<true>;
+    "payload-preferences":
+      | PayloadPreferencesSelect<false>
+      | PayloadPreferencesSelect<true>;
+    "payload-migrations":
+      | PayloadMigrationsSelect<false>
+      | PayloadMigrationsSelect<true>;
   };
   db: {
     defaultIDType: number;
@@ -94,7 +102,7 @@ export interface Config {
   globalsSelect: {};
   locale: null;
   user: User & {
-    collection: 'users';
+    collection: "users";
   };
   jobs: {
     tasks: unknown;
@@ -157,8 +165,10 @@ export interface PostcardDesign {
   videoUrl?: string | null;
   backgroundColor?: string | null;
   textColor?: string | null;
-  font?: ('sans' | 'serif' | 'handwritten' | 'decorative') | null;
-  layout?: ('full-image' | 'split-horizontal' | 'split-vertical' | 'border-frame') | null;
+  font?: ("sans" | "serif" | "handwritten" | "decorative") | null;
+  layout?:
+    | ("full-image" | "split-horizontal" | "split-vertical" | "border-frame")
+    | null;
   defaultMessage?: string | null;
   /**
    * Text overlays to display on the postcard
@@ -168,7 +178,7 @@ export interface PostcardDesign {
         id: string;
         text: string;
         fontSize?: number | null;
-        fontFamily?: ('sans-serif' | 'serif' | 'cursive' | 'display') | null;
+        fontFamily?: ("sans-serif" | "serif" | "cursive" | "display") | null;
         color?: string | null;
         strokeColor?: string | null;
         strokeWidth?: number | null;
@@ -185,10 +195,12 @@ export interface PostcardDesign {
          */
         rotation?: number | null;
         opacity?: number | null;
-        textAlign?: ('left' | 'center' | 'right') | null;
+        textAlign?: ("left" | "center" | "right") | null;
       }[]
     | null;
-  category?: ('holiday' | 'birthday' | 'thankyou' | 'greeting' | 'travel' | 'custom') | null;
+  category?:
+    | ("holiday" | "birthday" | "thankyou" | "greeting" | "travel" | "custom")
+    | null;
   isPublic?: boolean | null;
   createdBy?: (number | null) | User;
   updatedAt: string;
@@ -219,7 +231,7 @@ export interface Media {
  */
 export interface User {
   id: number;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -253,8 +265,8 @@ export interface Postcard {
         version: number;
         [k: string]: unknown;
       }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
       indent: number;
       version: number;
     };
@@ -264,7 +276,7 @@ export interface Postcard {
   recipientAddress: string;
   senderName: string;
   image: number | Media;
-  status?: ('draft' | 'sent' | 'delivered') | null;
+  status?: ("draft" | "sent" | "delivered") | null;
   aiGenerated?: boolean | null;
   createdBy: number | User;
   updatedAt: string;
@@ -278,7 +290,9 @@ export interface Template {
   id: number;
   name: string;
   description?: string | null;
-  category?: ('holiday' | 'birthday' | 'thankyou' | 'greeting' | 'travel') | null;
+  category?:
+    | ("holiday" | "birthday" | "thankyou" | "greeting" | "travel")
+    | null;
   templateImage?: (number | null) | Media;
   defaultMessage?: {
     root: {
@@ -288,8 +302,8 @@ export interface Template {
         version: number;
         [k: string]: unknown;
       }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
       indent: number;
       version: number;
     };
@@ -307,28 +321,28 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'postcard-designs';
+        relationTo: "postcard-designs";
         value: number | PostcardDesign;
       } | null)
     | ({
-        relationTo: 'users';
+        relationTo: "users";
         value: number | User;
       } | null)
     | ({
-        relationTo: 'postcards';
+        relationTo: "postcards";
         value: number | Postcard;
       } | null)
     | ({
-        relationTo: 'media';
+        relationTo: "media";
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'templates';
+        relationTo: "templates";
         value: number | Template;
       } | null);
   globalSlug?: string | null;
   user: {
-    relationTo: 'users';
+    relationTo: "users";
     value: number | User;
   };
   updatedAt: string;
@@ -341,7 +355,7 @@ export interface PayloadLockedDocument {
 export interface PayloadPreference {
   id: number;
   user: {
-    relationTo: 'users';
+    relationTo: "users";
     value: number | User;
   };
   key?: string | null;
@@ -521,7 +535,6 @@ export interface Auth {
   [k: string]: unknown;
 }
 
-
-declare module 'payload' {
+declare module "payload" {
   export interface GeneratedTypes extends Config {}
 }

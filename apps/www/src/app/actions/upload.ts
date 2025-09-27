@@ -45,7 +45,7 @@ export async function uploadImage(formData: FormData): Promise<any> {
       // Download the thumbnail from Cloudinary to store in Payload
       const thumbnailResponse = await fetch(cloudinaryResult.thumbnailUrl);
       const thumbnailBuffer = Buffer.from(
-        await thumbnailResponse.arrayBuffer()
+        await thumbnailResponse.arrayBuffer(),
       );
 
       // Create media entry with the thumbnail

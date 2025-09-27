@@ -24,7 +24,7 @@ providers.push(
 
       const result = await payloadLogin(
         credentials.email as string,
-        credentials.password as string
+        credentials.password as string,
       );
 
       if (result.success && result.user) {
@@ -36,7 +36,7 @@ providers.push(
 
       return null;
     },
-  })
+  }),
 );
 
 // Add Google provider if env vars are set
@@ -45,7 +45,7 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    })
+    }),
   );
 }
 
@@ -55,7 +55,7 @@ if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
-    })
+    }),
   );
 }
 
@@ -75,7 +75,7 @@ if (
           scope: "name email",
         },
       },
-    })
+    }),
   );
 }
 
@@ -85,7 +85,7 @@ if (process.env.AUTH_LINKEDIN_ID && process.env.AUTH_LINKEDIN_SECRET) {
     LinkedIn({
       clientId: process.env.AUTH_LINKEDIN_ID,
       clientSecret: process.env.AUTH_LINKEDIN_SECRET,
-    })
+    }),
   );
 }
 
