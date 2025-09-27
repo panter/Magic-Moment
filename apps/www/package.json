@@ -36,6 +36,10 @@
     "react-leaflet": "^5.0.0",
     "sharp": "^0.34.3"
   },
+  "optionalDependencies": {
+    "@img/sharp-linux-x64": "0.34.3",
+    "@img/sharp-linuxmusl-x64": "0.34.3"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@tailwindcss/postcss": "^4",
