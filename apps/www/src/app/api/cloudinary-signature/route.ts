@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // Get resource type from request
-    const { resourceType = "image" } = await request.json();
+    // Get resource type and HEIC flag from request
+    const { resourceType = "image", isHeic = false } = await request.json();
 
     // Validate environment variables
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -40,6 +40,12 @@ export async function POST(request: NextRequest) {
     if (resourceType === "video") {
       paramsToSign.eager = "w_1200,h_850,c_fill,g_auto,f_jpg,q_auto:best";
       paramsToSign.eager_async = false;
+    }
+
+    // Add format conversion for HEIC images
+    if (resourceType === "image" && isHeic) {
+      paramsToSign.format = "jpg";
+      paramsToSign.quality = "auto:best";
     }
 
     // Create signature string (alphabetically sorted)

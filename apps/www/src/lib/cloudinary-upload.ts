@@ -21,6 +21,7 @@ export interface DirectUploadResult {
 
 async function getUploadSignature(
   resourceType: "image" | "video" = "image",
+  isHeic = false,
 ): Promise<{
   signature: string;
   timestamp: number;
@@ -32,7 +33,7 @@ async function getUploadSignature(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ resourceType }),
+    body: JSON.stringify({ resourceType, isHeic }),
   });
 
   if (!response.ok) {
@@ -49,9 +50,15 @@ export async function uploadToCloudinary(
   const isVideo = file.type.startsWith("video/");
   const resourceType = isVideo ? "video" : "image";
 
+  // Check if file is HEIC/HEIF format
+  const isHeic = file.type.includes("heic") ||
+                 file.type.includes("heif") ||
+                 file.name.toLowerCase().endsWith(".heic") ||
+                 file.name.toLowerCase().endsWith(".heif");
+
   // Get signature from server
   const { signature, timestamp, cloudName, apiKey } =
-    await getUploadSignature(resourceType);
+    await getUploadSignature(resourceType, isHeic);
 
   // Prepare form data
   const formData = new FormData();
@@ -65,6 +72,12 @@ export async function uploadToCloudinary(
   if (isVideo) {
     formData.append("eager", "w_1200,h_850,c_fill,g_auto,f_jpg,q_auto:best");
     formData.append("eager_async", "false");
+  }
+
+  // Force HEIC files to be converted to JPEG format
+  if (isHeic && !isVideo) {
+    formData.append("format", "jpg");
+    formData.append("quality", "auto:best");
   }
 
   // Upload to Cloudinary

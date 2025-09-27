@@ -164,10 +164,10 @@ export function ImageUpload({
             </p>
             <p className="text-gray-400 text-xs">
               {acceptVideo && acceptImage
-                ? "PNG, JPG, MP4, MOV"
+                ? "PNG, JPG, HEIC, MP4, MOV"
                 : acceptVideo && !acceptImage
                   ? "MP4, MOV"
-                  : "PNG, JPG"}{" "}
+                  : "PNG, JPG, HEIC"}{" "}
               up to {maxSize}
             </p>
           </label>
@@ -178,10 +178,10 @@ export function ImageUpload({
           accept={
             accept ||
             (acceptVideo && acceptImage
-              ? "image/*,video/*"
+              ? "image/*,video/*,.heic,.heif"
               : acceptVideo && !acceptImage
                 ? "video/*"
-                : "image/*")
+                : "image/*,.heic,.heif")
           }
           onChange={handleFileChange}
           className="hidden"
