@@ -33,7 +33,11 @@
       ]
     },
     "onlyBuiltDependencies": [
-      "sharp"
+      "@tailwindcss/oxide",
+      "bufferutil",
+      "esbuild",
+      "sharp",
+      "utf-8-validate"
     ]
   }
 }
