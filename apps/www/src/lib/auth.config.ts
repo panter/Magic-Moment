@@ -5,6 +5,7 @@ import Apple from "next-auth/providers/apple";
 import LinkedIn from "next-auth/providers/linkedin";
 import Credentials from "next-auth/providers/credentials";
 import { login as payloadLogin } from "@/app/actions/auth";
+import crypto from "crypto";
 
 const providers: NextAuthConfig["providers"] = [];
 
