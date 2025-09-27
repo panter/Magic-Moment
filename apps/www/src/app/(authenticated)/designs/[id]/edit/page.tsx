@@ -10,8 +10,8 @@ import {
 } from "@/app/actions/designs";
 import { generateOverlayText } from "@/app/actions/generateOverlayText";
 import { MESSAGE_CHAR_LIMIT, NEXT_PUBLIC_URL } from "@/lib/constants";
-import { uploadFromUrl } from "@/app/actions/uploadFromUrl";
-import { uploadToCloudinary } from "@/lib/cloudinary-upload";
+import { uploadImage } from "@/app/actions/upload";
+import { SmartCropPreview } from "@/components/SmartCropPreview";
 import {
   Button,
   Input,
@@ -304,21 +304,9 @@ export default function EditDesignPage() {
       // Auto-save the video immediately
       try {
         setAutoSaving(true);
-        setUploadProgress(0);
-
-        // Upload directly to Cloudinary
-        const cloudinaryResult = await uploadToCloudinary(file, (progress) =>
-          setUploadProgress(progress)
-        );
-
-        // Save URL to backend
-        const uploadedVideo = await uploadFromUrl({
-          url: cloudinaryResult.url,
-          filename: file.name,
-          mimeType: file.type,
-          isVideo: cloudinaryResult.resourceType === "video",
-          thumbnailUrl: cloudinaryResult.thumbnailUrl,
-        });
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadedVideo = await uploadImage(formData);
 
         // Update video URL in design
         await updateDesign(id, {
@@ -474,260 +462,154 @@ export default function EditDesignPage() {
     },
   ];
 
-  const handleSendPostcard = async () => {
-    // For now, just log the send action
-    console.log("Sending postcard with:", {
-      message,
-      recipientName,
-      recipientAddress,
-    });
-    alert("Postcard sent! (Not actually sent - functionality to be implemented)");
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
-      {/* Sticky Step Navigation - Always visible on mobile */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-5">
-          <div className="flex items-center justify-between">
-            {/* Step indicators - More compact on mobile */}
-            <div className="flex items-center flex-1 gap-2 sm:gap-4">
-              {/* Step 1 */}
-              <div
-                className={`flex items-center cursor-pointer min-w-0`}
-                onClick={() => setCurrentStep(1)}
-              >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 1
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
-                  1
-                </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 1 ? "text-gray-900" : "text-gray-500"
-                }`}>
-                  <span className="hidden sm:inline">Create</span>
-                  <span className="sm:hidden">Upload</span>
-                </span>
-              </div>
-
-              {/* Line between steps - Shorter on mobile */}
-              <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
-                <div className={`h-0.5 sm:h-1 rounded ${
-                  currentStep >= 2 ? "bg-yellow-500" : "bg-gray-200"
-                }`}></div>
-              </div>
-
-              {/* Step 2 */}
-              <div
-                className={`flex items-center cursor-pointer min-w-0`}
-                onClick={() => currentStep >= 2 && setCurrentStep(2)}
-              >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 2
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
-                  2
-                </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 2 ? "text-gray-900" : "text-gray-500"
-                }`}>
-                  Edit
-                </span>
-              </div>
-
-              {/* Line between steps - Shorter on mobile */}
-              <div className="flex-1 max-w-[20px] sm:max-w-[60px] md:max-w-none">
-                <div className={`h-0.5 sm:h-1 rounded ${
-                  currentStep >= 3 ? "bg-yellow-500" : "bg-gray-200"
-                }`}></div>
-              </div>
-
-              {/* Step 3 */}
-              <div
-                className={`flex items-center cursor-pointer min-w-0`}
-                onClick={() => currentStep >= 3 && setCurrentStep(3)}
-              >
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                  currentStep >= 3
-                    ? "bg-yellow-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}>
-                  3
-                </div>
-                <span className={`ml-1 sm:ml-2 font-medium text-sm sm:text-base truncate ${
-                  currentStep === 3 ? "text-gray-900" : "text-gray-500"
-                }`}>
-                  Send
-                </span>
-              </div>
-            </div>
-
-            {/* Preview Link - Smaller on mobile */}
-            <a
-              href={`/designs/${id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 sm:ml-8 inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Edit Design</h1>
+          <a
+            href={`/designs/${id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-              <span className="hidden sm:inline">Preview</span>
-              <span className="sm:hidden">View</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area - Adjusted padding for sticky nav */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-
-        {/* Content based on current step */}
-        {currentStep === 1 && (
-          // Step 1: Create/Upload
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Step 1: Upload Your Image
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                Start by uploading an image or video for your postcard
-              </p>
-
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-
-              <ImageUpload
-                label="Upload Image or Video"
-                value={imageFile}
-                preview={imagePreview}
-                onChange={handleImageChange}
-                acceptVideo={true}
-                maxSize="100MB"
-                disabled={loading || autoSaving}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
               />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            Preview Landing Page
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
 
-              {videoPreview && (
-                <div className="mt-4">
-                  <div className="relative rounded-lg overflow-hidden shadow-lg bg-black">
-                    <video
-                      src={videoPreview}
-                      controls
-                      className="w-full"
-                      style={{ maxHeight: "300px" }}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-                </div>
-              )}
+        {/* Desktop Layout: Side by side, Mobile Layout: Stacked */}
+        <div className="lg:flex lg:gap-8">
+          {/* Preview Section - Shows on top on mobile, right side on desktop */}
+          <div className="w-full lg:max-w-md lg:order-2 mb-8 lg:mb-0">
+            <div className="lg:sticky lg:top-8 bg-white rounded-2xl shadow-xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Preview
+              </h2>
 
-              <div className="mt-6 sm:mt-8 flex justify-end">
-                <Button
-                  type="button"
-                  onClick={() => setCurrentStep(2)}
-                  variant="primary"
-                  size="lg"
-                  disabled={!imagePreview && !videoPreview}
-                  className="w-full sm:w-auto"
-                >
-                  Next: Edit Content →
-                </Button>
-              </div>
+              <PostcardPreview
+                frontImage={imagePreview}
+                message={message || "Your message will appear here..."}
+                recipientName="Jane Smith"
+                recipientAddress="456 Oak Avenue\n8002 Zurich\nSwitzerland"
+                designId={id}
+                overlays={overlays}
+                selectedOverlayId={selectedOverlayId}
+                onOverlayUpdate={(overlayId, updates) => {
+                  const updatedOverlays = overlays.map((overlay) =>
+                    overlay.id === overlayId
+                      ? { ...overlay, ...updates }
+                      : overlay,
+                  );
+                  updateOverlaysWithSave(updatedOverlays);
+                }}
+                onOverlaySelect={setSelectedOverlayId}
+              />
             </div>
           </div>
-        )}
 
-        {currentStep === 2 && (
-          // Step 2: Edit Content
-          <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
-            {/* Preview Section - Collapsible on mobile, sticky on desktop */}
-            <div className="w-full lg:max-w-md lg:order-2">
-              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
-                <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <h2 className="text-base font-semibold text-gray-900">
-                    Preview
-                  </h2>
-                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="p-4">
-                  <PostcardPreview
-                    frontImage={imagePreview}
-                    message={message || "Your message will appear here..."}
-                    recipientName={recipientName || "Recipient Name"}
-                    recipientAddress={recipientAddress || "Recipient Address"}
-                    designId={id}
-                    overlays={overlays}
-                    selectedOverlayId={selectedOverlayId}
-                    onOverlayUpdate={(overlayId, updates) => {
-                      const updatedOverlays = overlays.map((overlay) =>
-                        overlay.id === overlayId
-                          ? { ...overlay, ...updates }
-                          : overlay,
-                      );
-                      updateOverlaysWithSave(updatedOverlays);
-                    }}
-                    onOverlaySelect={setSelectedOverlayId}
-                  />
-                </div>
-              </details>
+          {/* Control Panel with Tabs - Shows below preview on mobile, left side on desktop */}
+          <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 lg:order-1">
+            <form onSubmit={handleSubmit}>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
 
-              {/* Desktop preview */}
-              <div className="hidden lg:block lg:sticky lg:top-24 bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Preview
-                </h2>
-                <PostcardPreview
-                  frontImage={imagePreview}
-                  message={message || "Your message will appear here..."}
-                  recipientName={recipientName || "Recipient Name"}
-                  recipientAddress={recipientAddress || "Recipient Address"}
-                  designId={id}
-                  overlays={overlays}
-                  selectedOverlayId={selectedOverlayId}
-                  onOverlayUpdate={(overlayId, updates) => {
-                    const updatedOverlays = overlays.map((overlay) =>
-                      overlay.id === overlayId
-                        ? { ...overlay, ...updates }
-                        : overlay,
-                    );
-                    updateOverlaysWithSave(updatedOverlays);
-                  }}
-                  onOverlaySelect={setSelectedOverlayId}
+              <div className="mb-6">
+                <Input
+                  label="Design Name"
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setName(e.target.value)
+                  }
+                  required
+                  disabled={loading}
+                  placeholder="My Swiss Postcard"
                 />
               </div>
-            </div>
 
-            {/* Edit Content Form */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 flex-1 lg:order-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Step 2: Customize Your Postcard
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                Enhance your postcard with variants and overlays
-              </p>
-
-              {error && <ErrorMessage>{error}</ErrorMessage>}
+              <div className="mb-6">
+                <div className="flex items-end justify-between mb-2">
+                  <div className="flex items-end gap-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Message
+                    </label>
+                    <Button
+                      type="button"
+                      onClick={generateMessage}
+                      variant="secondary"
+                      size="sm"
+                      disabled={loading || generatingMessage}
+                      loading={generatingMessage}
+                    >
+                      {generatingMessage ? "Generating..." : "✨ Generate"}
+                    </Button>
+                  </div>
+                  <span
+                    className={`text-sm ${
+                      message.length > MESSAGE_CHAR_LIMIT
+                        ? "text-red-600 font-semibold"
+                        : message.length > MESSAGE_CHAR_LIMIT * 0.9
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                    }`}
+                  >
+                    {message.length}/{MESSAGE_CHAR_LIMIT}
+                  </span>
+                </div>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    const newValue = e.target.value;
+                    if (newValue.length <= MESSAGE_CHAR_LIMIT) {
+                      setMessage(newValue);
+                    }
+                  }}
+                  rows={4}
+                  disabled={loading || generatingMessage}
+                  placeholder="Write your postcard message here..."
+                />
+                {message.length >= MESSAGE_CHAR_LIMIT && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Maximum character limit reached
+                  </p>
+                )}
+              </div>
 
               <Tabs
                 tabs={tabs}
@@ -735,6 +617,57 @@ export default function EditDesignPage() {
                 orientation="horizontal"
                 className="mb-6"
               >
+                {/* Video Source Tab */}
+                <TabPanel tabId="video">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Video Source
+                    </h3>
+                    <ImageUpload
+                      label="Upload Video"
+                      value={videoFile}
+                      preview={null}
+                      onChange={handleVideoChange}
+                      acceptVideo={true}
+                      acceptImage={false}
+                      maxSize="100MB"
+                      disabled={loading || autoSaving}
+                    />
+                    {videoFile && (
+                      <p className="text-sm text-amber-600">
+                        Video is being uploaded...
+                      </p>
+                    )}
+
+                    {/* Video Preview if video exists */}
+                    {(videoPreview || videoUrl) && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">
+                          Current Video
+                        </h4>
+                        <div className="relative rounded-lg overflow-hidden shadow-lg bg-black">
+                          <video
+                            src={videoPreview || videoUrl}
+                            controls
+                            className="w-full"
+                            style={{ maxHeight: "300px" }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-600">
+                        Upload a video to create an animated postcard. Supported
+                        formats: MP4, MOV.
+                      </p>
+                    </div>
+                  </div>
+                </TabPanel>
+
+                {/* Image Tab */}
                 <TabPanel tabId="image">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-4">
@@ -815,35 +748,37 @@ export default function EditDesignPage() {
                           </div>
                         </div>
                       )}
-                  </div>
-                </TabPanel>
-                <TabPanel tabId="video">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Video Source
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Video can be uploaded in Step 1
-                    </p>
-                    {videoUrl && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">
-                          Current Video
-                        </h4>
-                        <div className="relative rounded-lg overflow-hidden shadow-lg bg-black">
-                          <video
-                            src={videoUrl}
-                            controls
-                            className="w-full"
-                            style={{ maxHeight: "300px" }}
-                          >
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      </div>
+
+                    <ImageUpload
+                      label="Upload New Image"
+                      value={imageFile}
+                      preview={imageFile ? imagePreview : null}
+                      onChange={handleImageChange}
+                      acceptVideo={false}
+                      maxSize="100MB"
+                      disabled={loading || autoSaving}
+                    />
+                    {imageFile && (
+                      <p className="text-sm text-amber-600">
+                        New image will replace the current selection
+                      </p>
+                    )}
+
+                    {/* Smart Crop Preview for selected/uploaded image */}
+                    {imagePreview && (
+                      <SmartCropPreview
+                        imageUrl={imagePreview}
+                        onCropApplied={(adjustment) => {
+                          console.log("Crop adjustment applied:", adjustment);
+                          // Note: In edit mode, images are already cropped from creation
+                          // This is for reference/future manual adjustments
+                        }}
+                      />
                     )}
                   </div>
                 </TabPanel>
+
+                {/* Overlay Tab */}
                 <TabPanel tabId="overlay">
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -870,208 +805,43 @@ export default function EditDesignPage() {
                 </TabPanel>
               </Tabs>
 
-              <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-6">
+              <Textarea
+                label="Description (optional)"
+                id="description"
+                value={description}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setDescription(e.target.value)
+                }
+                rows={3}
+                disabled={loading}
+                placeholder="A beautiful postcard design..."
+              />
+
+              <div className="flex gap-4 mt-6">
                 <Button
                   type="button"
-                  onClick={() => setCurrentStep(1)}
+                  onClick={() => router.push("/designs")}
                   variant="secondary"
                   size="lg"
-                  className="flex-1 text-sm sm:text-base"
+                  className="flex-1"
+                  disabled={loading}
                 >
-                  ← Back
+                  Cancel
                 </Button>
                 <Button
-                  type="button"
-                  onClick={() => setCurrentStep(3)}
+                  type="submit"
                   variant="primary"
                   size="lg"
-                  className="flex-1 text-sm sm:text-base"
+                  className="flex-1"
+                  disabled={!name}
+                  loading={loading}
                 >
-                  Next: Message →
+                  {loading ? "Updating..." : "Update Design"}
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
-        )}
-
-        {currentStep === 3 && (
-          // Step 3: Message & Recipient
-          <div className="space-y-4 lg:space-y-0 lg:flex lg:gap-6">
-            {/* Preview Section - Collapsible on mobile, sticky on desktop */}
-            <div className="w-full lg:max-w-md lg:order-2">
-              <details className="lg:hidden bg-white rounded-xl shadow-lg overflow-hidden" open>
-                <summary className="p-4 cursor-pointer flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <h2 className="text-base font-semibold text-gray-900">
-                    Preview
-                  </h2>
-                  <svg className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="p-4">
-                  <PostcardPreview
-                    frontImage={imagePreview}
-                    message={message || "Your message will appear here..."}
-                    recipientName={recipientName || "Recipient Name"}
-                    recipientAddress={recipientAddress || "Recipient Address"}
-                    designId={id}
-                    overlays={overlays}
-                    selectedOverlayId={selectedOverlayId}
-                    onOverlayUpdate={(overlayId, updates) => {
-                      const updatedOverlays = overlays.map((overlay) =>
-                        overlay.id === overlayId
-                          ? { ...overlay, ...updates }
-                          : overlay,
-                      );
-                      updateOverlaysWithSave(updatedOverlays);
-                    }}
-                    onOverlaySelect={setSelectedOverlayId}
-                  />
-                </div>
-              </details>
-
-              {/* Desktop preview */}
-              <div className="hidden lg:block lg:sticky lg:top-24 bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Preview
-                </h2>
-                <PostcardPreview
-                  frontImage={imagePreview}
-                  message={message || "Your message will appear here..."}
-                  recipientName={recipientName || "Recipient Name"}
-                  recipientAddress={recipientAddress || "Recipient Address"}
-                  designId={id}
-                  overlays={overlays}
-                  selectedOverlayId={selectedOverlayId}
-                  onOverlayUpdate={(overlayId, updates) => {
-                    const updatedOverlays = overlays.map((overlay) =>
-                      overlay.id === overlayId
-                        ? { ...overlay, ...updates }
-                        : overlay,
-                    );
-                    updateOverlaysWithSave(updatedOverlays);
-                  }}
-                  onOverlaySelect={setSelectedOverlayId}
-                />
-              </div>
-            </div>
-
-            {/* Message & Recipient Form */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 flex-1 lg:order-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Step 3: Message & Recipient
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                Add your personal message and recipient details
-              </p>
-
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-
-              <div className="mb-6">
-                <div className="flex items-end justify-between mb-2">
-                  <div className="flex items-end gap-2">
-                    <label
-                      htmlFor="message"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Your Message
-                    </label>
-                    <Button
-                      type="button"
-                      onClick={generateMessage}
-                      variant="secondary"
-                      size="sm"
-                      disabled={loading || generatingMessage}
-                      loading={generatingMessage}
-                    >
-                      {generatingMessage ? "Generating..." : "✨ Generate"}
-                    </Button>
-                  </div>
-                  <span
-                    className={`text-sm ${
-                      message.length > MESSAGE_CHAR_LIMIT
-                        ? "text-red-600 font-semibold"
-                        : message.length > MESSAGE_CHAR_LIMIT * 0.9
-                          ? "text-amber-600"
-                          : "text-gray-500"
-                    }`}
-                  >
-                    {message.length}/{MESSAGE_CHAR_LIMIT}
-                  </span>
-                </div>
-                <Textarea
-                  id="message"
-                  value={message}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                    const newValue = e.target.value;
-                    if (newValue.length <= MESSAGE_CHAR_LIMIT) {
-                      setMessage(newValue);
-                    }
-                  }}
-                  rows={4}
-                  disabled={loading || generatingMessage}
-                  placeholder="Write your postcard message here..."
-                />
-                {message.length >= MESSAGE_CHAR_LIMIT && (
-                  <p className="text-xs text-red-600 mt-1">
-                    Maximum character limit reached
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-6">
-                <Input
-                  label="Recipient Name"
-                  id="recipientName"
-                  type="text"
-                  value={recipientName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setRecipientName(e.target.value)
-                  }
-                  required
-                  disabled={loading}
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div className="mb-6">
-                <Textarea
-                  label="Recipient Address"
-                  id="recipientAddress"
-                  value={recipientAddress}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setRecipientAddress(e.target.value)
-                  }
-                  rows={3}
-                  disabled={loading}
-                  placeholder="123 Main Street\n8001 Zurich\nSwitzerland"
-                />
-              </div>
-
-              <div className="flex gap-2 sm:gap-4 mt-6 sm:mt-8">
-                <Button
-                  type="button"
-                  onClick={() => setCurrentStep(2)}
-                  variant="secondary"
-                  size="lg"
-                  className="flex-1 text-sm sm:text-base"
-                >
-                  ← Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSendPostcard}
-                  variant="primary"
-                  size="lg"
-                  className="flex-1 text-sm sm:text-base"
-                  disabled={!message || !recipientName || !recipientAddress}
-                >
-                  Send 📮
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Variant Prompt Modal */}
