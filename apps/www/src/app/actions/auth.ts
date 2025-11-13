@@ -70,6 +70,7 @@ export async function getCurrentUser() {
     const { user } = await payload.auth({ headers });
     return user;
   } catch (error) {
+    console.error("Error getting current user", error);
     return null;
   }
 }

@@ -188,7 +188,6 @@ export interface PostcardDesign {
         textAlign?: ('left' | 'center' | 'right') | null;
       }[]
     | null;
-  category?: ('holiday' | 'birthday' | 'thankyou' | 'greeting' | 'travel' | 'custom') | null;
   isPublic?: boolean | null;
   createdBy?: (number | null) | User;
   updatedAt: string;
@@ -278,7 +277,6 @@ export interface Template {
   id: number;
   name: string;
   description?: string | null;
-  category?: ('holiday' | 'birthday' | 'thankyou' | 'greeting' | 'travel') | null;
   templateImage?: (number | null) | Media;
   defaultMessage?: {
     root: {
@@ -403,7 +401,6 @@ export interface PostcardDesignsSelect<T extends boolean = true> {
         opacity?: T;
         textAlign?: T;
       };
-  category?: T;
   isPublic?: T;
   createdBy?: T;
   updatedAt?: T;
@@ -474,7 +471,6 @@ export interface MediaSelect<T extends boolean = true> {
 export interface TemplatesSelect<T extends boolean = true> {
   name?: T;
   description?: T;
-  category?: T;
   templateImage?: T;
   defaultMessage?: T;
   isActive?: T;
