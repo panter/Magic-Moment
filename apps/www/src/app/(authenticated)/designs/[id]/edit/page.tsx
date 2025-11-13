@@ -773,20 +773,43 @@ export default function EditDesignPage() {
                       <h3 className="text-lg font-semibold text-gray-900">
                         Postcard Image
                       </h3>
-                      <Button
-                        type="button"
-                        onClick={() => setShowPromptModal(true)}
-                        variant="primary"
-                        size="sm"
-                        disabled={
-                          loading || generatingVariant || !imageOriginalId
-                        }
-                        loading={generatingVariant}
-                      >
-                        {generatingVariant
-                          ? "Creating Magic..."
-                          : "🎨 Create Variant"}
-                      </Button>
+                      <div className="flex gap-2">
+                        <label
+                          className={`rounded-lg font-semibold transition duration-200 inline-flex items-center justify-center px-3 py-1.5 text-sm cursor-pointer ${
+                            loading || autoSaving
+                              ? "bg-gray-200 text-gray-700 opacity-50 cursor-not-allowed"
+                              : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                          }`}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleImageChange(file);
+                              }
+                            }}
+                            className="hidden"
+                            disabled={loading || autoSaving}
+                          />
+                          📤 Upload New Image
+                        </label>
+                        <Button
+                          type="button"
+                          onClick={() => setShowPromptModal(true)}
+                          variant="primary"
+                          size="sm"
+                          disabled={
+                            loading || generatingVariant || !imageOriginalId
+                          }
+                          loading={generatingVariant}
+                        >
+                          {generatingVariant
+                            ? "Creating Magic..."
+                            : "🎨 Create Variant"}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Image Variant Selector */}
