@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -15,7 +16,14 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   size = "md",
 }) => {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted || !isOpen) return null;
 
   const sizeClasses = {
     sm: "max-w-md",
@@ -23,8 +31,8 @@ export const Modal: React.FC<ModalProps> = ({
     lg: "max-w-2xl",
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div
         className="fixed inset-0 bg-black bg-opacity-50"
         onClick={onClose}
@@ -60,4 +68,7 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  // Render modal at the document body using Portal
+  return createPortal(modalContent, document.body);
 };

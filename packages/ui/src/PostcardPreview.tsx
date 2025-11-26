@@ -3,6 +3,7 @@
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 import type { Overlay } from "./OverlayEditor";
+import { Modal } from "./modal";
 
 interface PostcardPreviewProps {
   frontImage: string | null;
@@ -14,7 +15,7 @@ interface PostcardPreviewProps {
   overlays?: Overlay[];
   onOverlayUpdate?: (
     overlayId: string,
-    updates: { x: number; y: number }
+    updates: { x: number; y: number },
   ) => void;
   selectedOverlayId?: string | null;
   onOverlaySelect?: (overlayId: string) => void;
@@ -35,8 +36,10 @@ export function PostcardPreview({
   onOverlaySelect,
 }: PostcardPreviewProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
   const [draggingOverlay, setDraggingOverlay] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const lightboxSvgRef = useRef<SVGSVGElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [tempPosition, setTempPosition] = useState<{
     id: string;
@@ -173,7 +176,15 @@ export function PostcardPreview({
               }}
             >
               {frontImage ? (
-                <div className="relative w-full h-full">
+                <div
+                  className="relative w-full h-full cursor-pointer"
+                  onClick={(e) => {
+                    // Only open lightbox if not dragging an overlay
+                    if (!draggingOverlay) {
+                      setShowLightbox(true);
+                    }
+                  }}
+                >
                   <img
                     src={frontImage}
                     alt="Postcard front"
@@ -233,8 +244,8 @@ export function PostcardPreview({
                                 overlay.textAlign === "left"
                                   ? "start"
                                   : overlay.textAlign === "right"
-                                  ? "end"
-                                  : "middle"
+                                    ? "end"
+                                    : "middle"
                               }
                               dominantBaseline="middle"
                               transform={`rotate(${overlay.rotation}, ${displayX}, ${displayY})`}
@@ -262,7 +273,7 @@ export function PostcardPreview({
                                 // Then apply word wrapping to each manual line
                                 const maxCharsPerLine = Math.max(
                                   8,
-                                  Math.floor(45 / (overlay.fontSize / 24))
+                                  Math.floor(45 / (overlay.fontSize / 24)),
                                 );
 
                                 manualLines.forEach((line) => {
@@ -315,8 +326,8 @@ export function PostcardPreview({
                                       overlay.textAlign === "left"
                                         ? "start"
                                         : overlay.textAlign === "right"
-                                        ? "end"
-                                        : "middle"
+                                          ? "end"
+                                          : "middle"
                                     }
                                   >
                                     {line}
@@ -444,6 +455,222 @@ export function PostcardPreview({
           </button>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      <Modal
+        isOpen={showLightbox}
+        onClose={() => setShowLightbox(false)}
+        size="lg"
+      >
+        <div className="relative">
+          {/* Close button in the modal */}
+          <button
+            onClick={() => setShowLightbox(false)}
+            className="absolute -top-2 -right-2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+            aria-label="Close lightbox"
+          >
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          {/* Larger postcard preview */}
+          <div className="w-full max-w-3xl mx-auto">
+            <div style={{ perspective: "1000px" }}>
+              <div
+                className="preserve-3d transition-transform duration-700"
+                style={{
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  transformStyle: "preserve-3d",
+                  position: "relative",
+                  width: "100%",
+                  height: "auto",
+                  aspectRatio: "148 / 105",
+                }}
+              >
+                {/* Front Side */}
+                <div
+                  className="absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+                  style={{
+                    backfaceVisibility: "hidden",
+                  }}
+                >
+                  {frontImage && (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={frontImage}
+                        alt="Postcard front"
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* SVG Overlay for lightbox */}
+                      {overlays.length > 0 && (
+                        <svg
+                          ref={lightboxSvgRef}
+                          className="absolute inset-0 w-full h-full pointer-events-none"
+                          viewBox="0 0 100 100"
+                          preserveAspectRatio="xMidYMid slice"
+                        >
+                          {overlays.map((overlay) => {
+                            const fontFamilyMap = {
+                              "sans-serif": "Arial, sans-serif",
+                              serif: "Georgia, serif",
+                              cursive: "'Brush Script MT', cursive",
+                              display: "'Impact', sans-serif",
+                            };
+
+                            return (
+                              <g key={overlay.id} opacity={overlay.opacity}>
+                                <text
+                                  x={`${overlay.x}%`}
+                                  y={`${overlay.y}%`}
+                                  fontSize={`${overlay.fontSize / 4}px`}
+                                  fontFamily={fontFamilyMap[overlay.fontFamily]}
+                                  fill={overlay.color}
+                                  stroke={overlay.strokeColor}
+                                  strokeWidth={overlay.strokeWidth}
+                                  textAnchor={
+                                    overlay.textAlign === "left"
+                                      ? "start"
+                                      : overlay.textAlign === "right"
+                                        ? "end"
+                                        : "middle"
+                                  }
+                                  dominantBaseline="middle"
+                                  transform={`rotate(${overlay.rotation}, ${overlay.x}, ${overlay.y})`}
+                                  style={{
+                                    paintOrder: "stroke fill",
+                                    fontWeight: "bold",
+                                    textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+                                  }}
+                                >
+                                  {overlay.text}
+                                </text>
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      )}
+                    </div>
+                  )}
+
+                  {/* QR Code on Front */}
+                  {designId && (
+                    <div className="absolute bottom-4 left-4 bg-white p-2 rounded-sm shadow-lg">
+                      <QRCodeSVG
+                        value={`${rootUrl}/designs/${designId}`}
+                        size={64}
+                        level="M"
+                        includeMargin={false}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Back Side */}
+                <div
+                  className="absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-2xl overflow-hidden bg-white"
+                  style={{
+                    backfaceVisibility: "hidden",
+                    transform: "rotateY(180deg)",
+                  }}
+                >
+                  <div className="w-full h-full p-6 flex">
+                    {/* Left side - Message */}
+                    <div className="w-1/2 pr-4 flex flex-col">
+                      <div className="flex-1">
+                        <p className="text-base text-gray-700 font-handwriting leading-relaxed">
+                          {message}
+                        </p>
+                      </div>
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-500">
+                          Sent with ❤️ from Switzerland
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Divider line */}
+                    <div className="w-px bg-gray-300"></div>
+
+                    {/* Right side - Address and Stamp */}
+                    <div className="w-1/2 pl-4 flex flex-col">
+                      {/* Stamp area */}
+                      <div className="self-end mb-4">
+                        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-sm shadow-md flex items-center justify-center transform rotate-3">
+                          <div className="text-white text-center">
+                            <div className="text-sm font-bold">SWISS</div>
+                            <div className="text-xl font-bold">POST</div>
+                            <div className="text-xs">CHF 1.20</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Recipient Address */}
+                      <div className="flex-1 flex items-center">
+                        <div>
+                          <p className="text-lg font-semibold text-gray-800 mb-2">
+                            {recipientName}
+                          </p>
+                          <p className="text-base text-gray-700 whitespace-pre-line">
+                            {recipientAddress}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* QR Code on Back */}
+                  {designId && (
+                    <div className="absolute bottom-4 left-4 bg-white p-2 rounded-sm shadow-lg">
+                      <QRCodeSVG
+                        value={`${rootUrl}/designs/${designId}`}
+                        size={64}
+                        level="M"
+                        includeMargin={false}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Flip button for lightbox */}
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors flex items-center gap-2 text-gray-700"
+                type="button"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+                {isFlipped ? "Show Front" : "Show Back"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
